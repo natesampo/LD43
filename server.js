@@ -283,8 +283,10 @@ function createFighter(data) {
 					if (tempArg[0] == 'projectile') {
 						effects[rawDataArray[i]][tempFrames[j]].push(function(user){shootProjectile(user,tempArg[1]);});
 					} else if (tempArg[0] == 'x' || tempArg[0] == 'velX' || tempArg[0] == 'y' || tempArg[0] == 'velY') {
-						if (tempArg[1] == 'set' || tempArg[1] == 'add') {
-							effects[rawDataArray[i]][tempFrames[j]].push(function(user){user[tempArg[0]]+=(((user.facing=='left')&&(tempArg[3]==1)) ? -1 : 1)*parseFloat(tempArg[2])});
+						if (tempArg[1] == 'set') {
+							effects[rawDataArray[i]][tempFrames[j]].push(function(user){user[tempArg[0]]=((((tempArg[0] =='x'||tempArg[0]=='velX')&&user.facing=='left')&&(tempArg[3]==1)) ? -1 : 1)*parseFloat(tempArg[2])});
+						} else if (tempArg[1] == 'add') {
+							effects[rawDataArray[i]][tempFrames[j]].push(function(user){user[tempArg[0]]+=((((tempArg[0] =='x'||tempArg[0]=='velX')&&user.facing=='left')&&(tempArg[3]==1)) ? -1 : 1)*parseFloat(tempArg[2])});
 						}
 					}
 				}
