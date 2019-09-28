@@ -1034,6 +1034,7 @@ function render() {
     }
 
     if (player) {
+
       numPlayer = 0;
       for (var drawPlayer in ((game.started) ? game.players : [player])) {
         numPlayer ++;

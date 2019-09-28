@@ -780,7 +780,7 @@ function joinGame(socketID, gameID) {
 		    projectileID: 0,
 		    previewStage: new Preview(),
 		    stageVelY: 0,
-		    sprite: game.fighters[0].sprites[0],
+		    sprite: 0,
 		    demo: false
 		};
 
@@ -844,7 +844,7 @@ function createGame(socketID, v, newFighter, newProjectiles) {
 		projectileID: 0,
 		previewStage: new Preview(),
 		stageVelY: 0,
-		sprite: games[socketID].fighters[0].sprites[0],
+		sprite: 0,
 		demo: (newFighter != null)
 	};
 
