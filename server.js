@@ -13,7 +13,7 @@ var port = 5000;
 var maxPlayers = 4;
 var totalPlayers = 0;
 var stockTotal = 5;
-var gameSpeed = 60;
+var gameSpeed = 30;
 var rawData = {};
 var spriteData = {};
 var fighters = [];
@@ -205,7 +205,7 @@ function shootProjectile(user, projectile) {
 		((tempProjectile['y'].split(';').length>1 && tempProjectile['y'].split(';')[0] == 'player') ? user.y + parseFloat(tempProjectile['y'].split(';')[1]) + user.fighter.spriteHeight/4 : parseFloat(tempProjectile['y'])),
 		parseFloat(tempProjectile['width']),
 		parseFloat(tempProjectile['height']),
-		[(((tempProjectile['facing'] == 'same') ? user.facing : ((user.facing == 'right') ? 'left' : 'right')) == 'left') ? parseFloat(tempProjectile['velX'].split(':')[0]) : parseFloat(tempProjectile['velX'].split(':')[1]), parseFloat(tempProjectile['velY'])],
+		[((((tempProjectile['facing'] == 'same') ? user.facing : ((user.facing == 'right') ? 'left' : 'right')) == 'left') ? parseFloat(tempProjectile['velX'].split(':')[0]) : parseFloat(tempProjectile['velX'].split(':')[1]))*(60/gameSpeed), parseFloat(tempProjectile['velY'])*(60/gameSpeed)],
 		parseFloat(tempProjectile['weight']),
 		parseFloat(tempProjectile['animationTime']),
 		parseFloat(tempProjectile['hitsLeft']),
@@ -1105,9 +1105,9 @@ setInterval(function() {
 					}
 
 					if (player.velX > 0) {
-						player.velX = Math.max(player.velX - 0.00005 - ((player.grounded) ? 0.0004 : 0), 0)*(60/gameSpeed);
+						player.velX = Math.max(player.velX - (0.00005 + ((player.grounded) ? 0.0004 : 0))*(60/gameSpeed), 0);
 					} else if (player.velX < 0) {
-						player.velX = Math.min(player.velX + 0.00005 + ((player.grounded) ? 0.0004 : 0), 0)*(60/gameSpeed);
+						player.velX = Math.min(player.velX + (0.00005 + ((player.grounded) ? 0.0004 : 0))*(60/gameSpeed), 0);
 					}
 
 					if (player.stun <= 0) {
@@ -1172,7 +1172,7 @@ setInterval(function() {
 				    }
 
 			    	if (player.action != 'stun' && (game.started && player.velY > player.fighter.terminalVelocity) || (!game.started && player.stageVelY < player.fighter.terminalVelocity)) {
-			    		player.velY = Math.max(player.velY - player.fighter.terminalVelocity/20, player.fighter.terminalVelocity)*(60/gameSpeed);
+			    		player.velY = Math.max(player.velY - (player.fighter.terminalVelocity/20)*(60/gameSpeed), player.fighter.terminalVelocity*(60/gameSpeed));
 			    	}
 
 			    	if ((game.started && player.velY < 0) || (!game.started && player.stageVelY > 0)) {
