@@ -990,7 +990,7 @@ function render() {
 
       var stageImg = new Image();
       stageImg.src = '/fd.png';
-      context.drawImage(stageImg, 0.52*canvas.width - (0.769*canvas.width)/2, canvas.height*0.75 - 0.236*canvas.height, 0.769*canvas.width, 0.3467*canvas.height);
+      context.drawImage(stageImg, 0.5*canvas.width - (0.7*canvas.width)/2, canvas.height*0.75 - 0.236*canvas.height, 0.7*canvas.width, 0.3467*canvas.height);
     }
 
     if (player) {
@@ -1850,7 +1850,7 @@ setInterval(function() {
   canvas.height = window.innerHeight;
   context = canvas.getContext('2d');
   context.imageSmoothingEnabled = false;
-  context.clearRect(0, 0, canvas.width, canvas.height);
+  //context.clearRect(0, 0, canvas.width, canvas.height);
 
   if (player) {
     frame = Math.floor(player.animationFrame/player.fighter.animationTime).toString();
