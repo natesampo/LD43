@@ -153,12 +153,9 @@ fs.readdir('static/fighters', function(err, items) {
 		fighters.push(createFighter(rawData['fighters'][items[i].slice(0, -4)]));
 
 		spriteData['fighters'][fighters[i].name] = {};
-		for (var spr in fighters[i].sprites) {
-			spriteData['fighters'][fighters[i].name][fighters[i].sprites[spr]] = {};
-			spriteData['fighters'][fighters[i].name][fighters[i].sprites[spr]]['stock'] = '/static/sprites/fighters/' + fighters[i].name + '/stock.png';
-			for (var j in fighters[i]['frames']) {
-				spriteData['fighters'][fighters[i].name][fighters[i].sprites[spr]][j] = '/static/sprites/fighters/' + fighters[i].name + '/' + j + '.png';
-			}
+		spriteData['fighters'][fighters[i].name]['stock'] = '/static/sprites/fighters/' + fighters[i].name + '/stock.png';
+		for (var j in fighters[i]['frames']) {
+			spriteData['fighters'][fighters[i].name][j] = '/static/sprites/fighters/' + fighters[i].name + '/' + j + '.png';
 		}
 	}
 
@@ -300,12 +297,6 @@ function createFighter(data) {
 		frames[rawDataArray[i]] = rawDataArray[i+1];
 	}
 
-	rawDataArray = data['sprites'].split(';');
-	var sprites = [];
-	for (var i=0; i<rawDataArray.length; i++) {
-		sprites.push(rawDataArray[i]);
-	}
-
 	return new Fighter(
 		data['name'],
 		parseFloat(data['terminalVelocity']),
@@ -321,7 +312,7 @@ function createFighter(data) {
 		frames,
 		attacks,
 		effects,
-		sprites);
+		parseInt(data['sprites']));
 }
 
 io.on('connection', function(socket) {
@@ -412,7 +403,7 @@ io.on('connection', function(socket) {
 		try {
 			var player = games[users[socket.id].inGame].players[socket.id];
 			player.fighter = games[users[socket.id].inGame].fighters[newFighter];
-			player.sprite = player.fighter.sprites[0];
+			player.sprite = 0;
 		}
 		catch (e) {
 			console.log(e);

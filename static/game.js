@@ -158,7 +158,6 @@ var stage;
 var frame;
 var game;
 var gamez;
-var playerDebug;
 var numPlayer;
 var data;
 var fighters;
@@ -826,6 +825,49 @@ function downloadNewFighter() {
 }
 
 function downloadAsSpriteSheet() {
+  /*for (var action in actions) {
+    if(actions[action] == 'dair' || actions[action] == 'dtilt') {
+      var downloadCanvas = document.createElement('canvas');
+      var downloadContext = downloadCanvas.getContext('2d');
+      downloadContext.imageSmoothingEnabled = false;
+      var downloader = document.createElement('a');
+
+      downloadCanvas.width = imgs['fighters']['Vinny'][actions[action]].width;
+      downloadCanvas.height = 198;
+
+      for (var tempFrame=0; tempFrame<fighters[3].frames[actions[action]]; tempFrame++) {
+        for (var i in fighters[3].hitboxes[actions[action]][tempFrame]) {
+          var w = imgs['fighters']['Vinny'][actions[action]].width/fighters[3].frames[actions[action]];
+          var h = imgs['fighters']['Vinny'][actions[action]].height;
+          var hitbox = fighters[3].hitboxes[actions[action]][tempFrame][i]['hitbox'];
+          downloadContext.lineWidth = 2;
+          downloadContext.strokeStyle = 'rgba(0, 0, 255, 1)';
+          downloadContext.beginPath();
+          downloadContext.rect(Math.round(hitbox[0]*w + tempFrame*w), Math.round(hitbox[1]*h), Math.round((hitbox[2] - hitbox[0])*w), Math.round((hitbox[3] - hitbox[1])*h));
+          downloadContext.stroke();
+          downloadContext.closePath();
+        }
+
+        for (var i in fighters[3].hurtboxes[actions[action]][tempFrame]) {
+          var w = imgs['fighters']['Vinny'][actions[action]].width/fighters[3].frames[actions[action]];
+          var h = imgs['fighters']['Vinny'][actions[action]].height;
+          var hitbox = fighters[3].hurtboxes[actions[action]][tempFrame][i];
+          downloadContext.lineWidth = 2;
+          downloadContext.strokeStyle = 'rgba(255, 0, 0, 1)';
+          downloadContext.beginPath();
+          downloadContext.rect(Math.round(hitbox[0]*w + tempFrame*w), Math.round(hitbox[1]*h), Math.round((hitbox[2] - hitbox[0])*w), Math.round((hitbox[3] - hitbox[1])*h));
+          downloadContext.stroke();
+          downloadContext.closePath();
+        }
+      }
+
+      downloader.href = downloadCanvas.toDataURL('image/png');
+      downloader.download = actions[action] + '.png';
+      document.body.appendChild(downloadCanvas);
+      downloader.click();
+      document.body.removeChild(downloadCanvas);
+    }
+  }*/
   if (imgs['new'] && imgs['new'][newFighterSprite] && imgs['new'][newFighterSprite][newFighterAction]) {
     var downloadCanvas = document.createElement('canvas');
     var downloadContext = downloadCanvas.getContext('2d');
@@ -854,7 +896,7 @@ function downloadAsSpriteSheet() {
     }
 
     downloader.href = downloadCanvas.toDataURL('image/png');
-    downloader.download = newFighterAction + newFighterSprite + '.png';
+    downloader.download = newFighterAction + '.png';
     document.body.appendChild(downloadCanvas);
     downloader.click();
     document.body.removeChild(downloadCanvas);
@@ -962,13 +1004,10 @@ function loadImages() {
   imgs['fighters'] = {};
   for (var i in data.fighters) {
     imgs['fighters'][i] = {};
-    for (var spr in data.fighters[i]) {
-      imgs['fighters'][i][spr] = {};
-      for (var j in data.fighters[i][spr]) {
-        var img = new Image();
-        img.src = data.fighters[i][spr][j];
-        imgs['fighters'][i][spr][j] = img;
-      }
+    for (var j in data.fighters[i]) {
+      var img = new Image();
+      img.src = data.fighters[i][j];
+      imgs['fighters'][i][j] = img;
     }
   }
 
@@ -998,38 +1037,34 @@ function render() {
       numPlayer = 0;
       for (var drawPlayer in ((game.started) ? game.players : [player])) {
         numPlayer ++;
-        playerDebug = true;
         var tempPlayer = ((game.started) ? game.players[drawPlayer] : player);
         drawFrame = Math.floor(tempPlayer.animationFrame/tempPlayer.fighter.animationTime).toString();
         spriteWidth = tempPlayer.fighter.spriteWidth*canvas.width;
         spriteHeight = tempPlayer.fighter.spriteHeight*canvas.height;
 
-        if ((imgs['demo'] && demo) || (contains(Object.keys(imgs['fighters']), tempPlayer.fighter.name) && imgs['fighters'][tempPlayer.fighter.name][tempPlayer.sprite][tempPlayer.action].height != 1)) {
-          var tempSheet = ((imgs['demo'] && demo) ? imgs['demo'][tempPlayer.sprite][tempPlayer.action] : imgs['fighters'][tempPlayer.fighter.name][tempPlayer.sprite][tempPlayer.action]);
+        if ((imgs['demo'] && demo) || (contains(Object.keys(imgs['fighters']), tempPlayer.fighter.name))) {
+          var tempSheet = ((imgs['demo'] && demo) ? imgs['demo'][tempPlayer.sprite][tempPlayer.action] : imgs['fighters'][tempPlayer.fighter.name][tempPlayer.action]);
           if (tempPlayer.facing == 'right') {
-            context.drawImage(tempSheet, drawFrame*(tempSheet.width/tempPlayer.fighter.frames[tempPlayer.action]), 0, tempSheet.width/tempPlayer.fighter.frames[tempPlayer.action], tempSheet.height, tempPlayer.x*canvas.width, tempPlayer.y*canvas.height, spriteWidth, spriteHeight);
+            context.drawImage(tempSheet, drawFrame*(tempSheet.width/tempPlayer.fighter.frames[tempPlayer.action]), tempPlayer.sprite*(tempSheet.height/tempPlayer.fighter.sprites), tempSheet.width/tempPlayer.fighter.frames[tempPlayer.action], tempSheet.height/tempPlayer.fighter.sprites, tempPlayer.x*canvas.width, tempPlayer.y*canvas.height, spriteWidth, spriteHeight);
           } else {
             context.translate(canvas.width, 0);
             context.scale(-1, 1);
-            context.drawImage(tempSheet, drawFrame*(tempSheet.width/tempPlayer.fighter.frames[tempPlayer.action]), 0, tempSheet.width/tempPlayer.fighter.frames[tempPlayer.action], tempSheet.height, canvas.width - tempPlayer.x*canvas.width - spriteWidth, tempPlayer.y*canvas.height, spriteWidth, spriteHeight);
+            context.drawImage(tempSheet, drawFrame*(tempSheet.width/tempPlayer.fighter.frames[tempPlayer.action]), tempPlayer.sprite*(tempSheet.height/tempPlayer.fighter.sprites), tempSheet.width/tempPlayer.fighter.frames[tempPlayer.action], tempSheet.height/tempPlayer.fighter.sprites, canvas.width - tempPlayer.x*canvas.width - spriteWidth, tempPlayer.y*canvas.height, spriteWidth, spriteHeight);
             context.setTransform(1, 0, 0, 1, 0, 0);
           }
-          playerDebug = false;
         }
 
-        if (!playerDebug) {
-          for (var i in tempPlayer.projectiles) {
-            var projectile = tempPlayer.projectiles[i];
-            var tempSheet = ((imgs['demo'] && demo) ? imgs['demo'][tempPlayer.sprite][projectile.name] : imgs['projectiles'][projectile.name]);
-            drawProjectileFrame = Math.floor(projectile.frame/projectile.animationTime);
-            if (projectile.facing == 'right') {
-              context.drawImage(tempSheet, drawProjectileFrame*(tempSheet.width/projectile.frames), 0, tempSheet.width/projectile.frames, tempSheet.height, projectile.x*canvas.width, projectile.y*canvas.height, projectile.width*canvas.width, projectile.height*canvas.height);
-            } else {
-              context.translate(canvas.width, 0);
-              context.scale(-1, 1);
-              context.drawImage(tempSheet, drawProjectileFrame*(tempSheet.width/projectile.frames), 0, tempSheet.width/projectile.frames, tempSheet.height, canvas.width - projectile.x*canvas.width - projectile.width, projectile.y*canvas.height, projectile.width*canvas.width, projectile.height*canvas.height);
-              context.setTransform(1, 0, 0, 1, 0, 0);
-            }
+        for (var i in tempPlayer.projectiles) {
+          var projectile = tempPlayer.projectiles[i];
+          var tempSheet = ((imgs['demo'] && demo) ? imgs['demo'][tempPlayer.sprite][projectile.name] : imgs['projectiles'][projectile.name]);
+          drawProjectileFrame = Math.floor(projectile.frame/projectile.animationTime);
+          if (projectile.facing == 'right') {
+            context.drawImage(tempSheet, drawProjectileFrame*(tempSheet.width/projectile.frames), 0, tempSheet.width/projectile.frames, tempSheet.height, projectile.x*canvas.width, projectile.y*canvas.height, projectile.width*canvas.width, projectile.height*canvas.height);
+          } else {
+            context.translate(canvas.width, 0);
+            context.scale(-1, 1);
+            context.drawImage(tempSheet, drawProjectileFrame*(tempSheet.width/projectile.frames), 0, tempSheet.width/projectile.frames, tempSheet.height, canvas.width - projectile.x*canvas.width - projectile.width, projectile.y*canvas.height, projectile.width*canvas.width, projectile.height*canvas.height);
+            context.setTransform(1, 0, 0, 1, 0, 0);
           }
         }
 
@@ -1040,7 +1075,11 @@ function render() {
           context.fillText(tempPlayer.name.substring(0, nameLength), tempPlayer.x*canvas.width + spriteWidth/2, tempPlayer.y*canvas.height - canvas.height/180);
 
           for (var i=0; i<tempPlayer.stock; i++) {
-            context.drawImage(((imgs['demo'] && demo) ? imgs['demo'][tempPlayer.sprite]['stock'] : imgs['fighters'][tempPlayer.fighter.name][tempPlayer.sprite]['stock']), i*(canvas.width/60) + numPlayer*(canvas.width/(Object.keys(game.players).length+1)), 3.5*canvas.height/4, canvas.width/71.111111, canvas.height/45);
+            if(imgs['demo'] && demo) {
+              context.drawImage(imgs['demo'][tempPlayer.sprite]['stock'], i*(canvas.width/60) + numPlayer*(canvas.width/(Object.keys(game.players).length+1)), 3.5*canvas.height/4, canvas.width/71.111111, canvas.height/45);
+            } else {
+              context.drawImage(imgs['fighters'][tempPlayer.fighter.name]['stock'], 0, tempPlayer.sprite*(imgs['fighters'][tempPlayer.fighter.name]['stock'].height/tempPlayer.fighter.sprites), imgs['fighters'][tempPlayer.fighter.name]['stock'].width, imgs['fighters'][tempPlayer.fighter.name]['stock'].height/tempPlayer.fighter.sprites, i*(canvas.width/60) + numPlayer*(canvas.width/(Object.keys(game.players).length+1)), 3.5*canvas.height/4, canvas.width/71.111111, canvas.height/45);
+            }
           }
 
           context.fillText(tempPlayer.name.substring(0, nameLength), numPlayer*(canvas.width/(Object.keys(game.players).length+1)) + canvas.width/50, 3.45*canvas.height/4);
@@ -1050,7 +1089,7 @@ function render() {
           context.fillText(tempPlayer.launch.toString() + '%', numPlayer*(canvas.width/(Object.keys(game.players).length+1)), 3.78*canvas.height/4);
         }
 
-        if (debug || playerDebug) {
+        if (debug) {
           for (var i in tempPlayer.fighter.hitboxes[tempPlayer.action][drawFrame]) {
             var hitbox = ((tempPlayer.facing == 'left') ? flipHitbox(tempPlayer.fighter.hitboxes[tempPlayer.action][drawFrame][i]['hitbox']) : tempPlayer.fighter.hitboxes[tempPlayer.action][drawFrame][i]['hitbox']);
             context.lineWidth = 1;
@@ -1857,19 +1896,10 @@ setInterval(function() {
 
   if (game && game != null && !game.started && preGameButtons.length == preGameButtonsLength) {
     for (var i in fighters) {
-      preGameButtons.push(new Button('fighter' + i, function() {return canvas.width/1.85 + canvas.width/3.83 + canvas.width/19.2;}, function() {return canvas.height/6 + canvas.height/35 + parseInt(this.id.substring(7, 8))*this.getHeight();}, function() {return canvas.width/19.2;}, function() {return canvas.height/7.2}, 3, function() {fighterSelect = false; socket.emit('changeFighter', parseInt(this.id.substring(7, 8)));}, function() {return fighterSelect;}, function() {return 'white';}, function() {return [];}, 'black', function() {return (canvas.width/106.67).toString() + 'px Arial';}, function() {if (imgs && imgs['fighters'][fighters[this.id.substring(7)].name][fighters[this.id.substring(7)].sprites[0]]['idle'].height == 1) {
-          for (var i in fighters[this.id.substring(7)].hurtboxes['idle']['0']) {
-            var hitbox = fighters[this.id.substring(7)].hurtboxes['idle'][['0']][i];
-            context.lineWidth = 1;
-            context.strokeStyle = 'rgba(255, 0, 0, 1)';
-            context.beginPath();
-            context.rect(this.getX() + hitbox[0]*canvas.width/19.2, this.getY() + hitbox[1]*canvas.height/7.2, (hitbox[2] - hitbox[0])*canvas.width/19.2, (hitbox[3] - hitbox[1])*canvas.height/7.2);
-            context.stroke();
-            context.closePath();
-          }} 
-          tempSheet = imgs['fighters'][fighters[this.id.substring(7)].name][fighters[this.id.substring(7)].sprites[0]]['idle'];
-          context.drawImage(tempSheet, frame*(tempSheet.width/fighters[this.id.substring(7)].frames['idle']), 0, tempSheet.width/fighters[this.id.substring(7)].frames['idle'], tempSheet.height, this.getX(), this.getY(), spriteWidth, spriteHeight);
-          return null;}, function() {return fighterSelect;}));
+      preGameButtons.push(new Button('fighter' + i, function() {return canvas.width/1.85 + canvas.width/3.83 + canvas.width/19.2;}, function() {return canvas.height/6 + canvas.height/35 + parseInt(this.id.substring(7, 8))*this.getHeight();}, function() {return canvas.width/19.2;}, function() {return canvas.height/7.2}, 3, function() {fighterSelect = false; socket.emit('changeFighter', parseInt(this.id.substring(7, 8)));}, function() {return fighterSelect;}, function() {return 'white';}, function() {return [];}, 'black', function() {return (canvas.width/106.67).toString() + 'px Arial';}, function() {
+        tempSheet = imgs['fighters'][fighters[this.id.substring(7)].name]['idle'];
+        context.drawImage(tempSheet, frame*(tempSheet.width/fighters[this.id.substring(7)].frames['idle']), 0, tempSheet.width/fighters[this.id.substring(7)].frames['idle'], tempSheet.height/fighters[this.id.substring(7)].sprites, this.getX(), this.getY(), ((fighters[this.id.substring(7)].spriteWidth*canvas.width > this.getWidth() || fighters[this.id.substring(7)].spriteHeight*canvas.height > this.getHeight()) ? this.getWidth() : fighters[this.id.substring(7)].spriteWidth*canvas.width), ((fighters[this.id.substring(7)].spriteWidth*canvas.width > this.getWidth() || fighters[this.id.substring(7)].spriteHeight*canvas.height > this.getHeight()) ? this.getHeight() : fighters[this.id.substring(7)].spriteHeight*canvas.height));
+        return null;}, function() {return fighterSelect;}));
     }
   }
 

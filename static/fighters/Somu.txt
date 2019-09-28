@@ -12,4 +12,4 @@ hitboxes@idle||run||airmove||stun||dtilt||nair||uair||neutral|0=0;0.6458,0.5205,
 frames@idle|3|stun|1|nair|3|neutral|3|run|3|airmove|3|forward|3|fair|3|uair|5|bair|3|dair|3|dtilt|5
 attacks@fair|0_4;5,2;2.5_1_2;0,0;0_2_6;6,1;3_3_8;2,9;5|neutral|0_6;3,1;2_1_13;5,1;2
 effects@idle||stun||nair||neutral||run||airmove||forward||fair||uair||bair||dair||dtilt|
-sprites@0
+sprites@1

@@ -12,4 +12,4 @@ hitboxes@idle||run||airmove||stun||dtilt|1=0;0.4870,0.3779,0.5260,0.7870_2=0;0.4
 frames@idle|8|stun|5|nair|8|neutral|5|run|8|airmove|1|forward|8|fair|8|uair|8|bair|7|dair|3|dtilt|7
 attacks@nair|0_10;5,-20;5|neutral|0_5;6,-1;1|bair|0_8;-15,5;4_1_4;-5,0;2|dair|0_7;0,20;3|uair|0_10;0,-17;3|forward|0_5;1,-1;3_1_5;1,-1;3_2_5;5,-5;4|fair|0_5;0,0;1_1_0;7,-7;2_2_0;0,-10;1_3_0;-7,-7;2_4_0;-9,4;2_5_0;-4,9;2_6_0;7,7;2|dtilt|0_0;0,0;0
 effects@idle||stun||nair||neutral||run||airmove||forward||fair||uair||bair||dair||dtilt|
-sprites@0
+sprites@1
