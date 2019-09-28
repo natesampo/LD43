@@ -656,21 +656,23 @@ function compileNewFighterImages() {
   for(var i in imgs['new']) {
     new_imgs[i] = {};
     for(var j in imgs['new'][i]) {
-      var tempCanvas = document.createElement('canvas');
-      var tempContext = tempCanvas.getContext('2d');
-      tempContext.imageSmoothingEnabled = false;
-      tempCanvas.width = newFighterData['spriteWidth']*canvas.width*Object.keys(imgs['new'][i][j]).length;
-      tempCanvas.height = newFighterData['spriteHeight']*canvas.height;
+      if(imgs['new'][i][j] && Object.keys(imgs['new'][i][j]).length > 0) {
+        var tempCanvas = document.createElement('canvas');
+        var tempContext = tempCanvas.getContext('2d');
+        tempContext.imageSmoothingEnabled = false;
+        tempCanvas.width = imgs['new'][i][j][0].width*Object.keys(imgs['new'][i][j]).length;
+        tempCanvas.height = imgs['new'][i][j][0].height;
 
-      for(var k in imgs['new'][i][j]) {
-        if(imgs['new'][i][j] != null) {
-          tempContext.drawImage(imgs['new'][i][j][k], 0, 0, imgs['new'][i][j][k].width, imgs['new'][i][j][k].height, k*newFighterData['spriteWidth']*canvas.width, 0, newFighterData['spriteWidth']*canvas.width, newFighterData['spriteHeight']*canvas.height);
+        for(var k in imgs['new'][i][j]) {
+          if(imgs['new'][i][j] != null) {
+            tempContext.drawImage(imgs['new'][i][j][k], 0, 0, imgs['new'][i][j][k].width, imgs['new'][i][j][k].height, k*(tempCanvas.width/Object.keys(imgs['new'][i][j]).length), 0, tempCanvas.width/Object.keys(imgs['new'][i][j]).length, tempCanvas.height);
+          }
         }
-      }
 
-      var img = new Image();
-      img.src = tempCanvas.toDataURL('image/png');
-      new_imgs[i][j] = img;
+        var img = new Image();
+        img.src = tempCanvas.toDataURL('image/png');
+        new_imgs[i][j] = img;
+      }
     }
   }
 
