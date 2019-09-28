@@ -974,7 +974,7 @@ setInterval(function() {
 			    if (game.started) {
 			      	for (var a in player.projectiles) {
 			        	var projectile = player.projectiles[a];
-			        	projectile.frame = (projectile.frame + 1)%(projectile.animationTime*projectile.frames);
+			        	projectile.frame = (projectile.frame + (60/gameSpeed))%(projectile.animationTime*projectile.frames);
 			        	var projectileFrame = Math.floor(projectile.frame/projectile.animationTime).toString();
 			        	for (var i in projectile.hitboxes[projectileFrame]) {
 			          		var hitbox1 = ((projectile.facing == 'left') ? flipHitbox(projectile.hitboxes[projectileFrame][i]['hitbox']) : projectile.hitboxes[projectileFrame][i]['hitbox']);
