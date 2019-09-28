@@ -1105,9 +1105,9 @@ setInterval(function() {
 					}
 
 					if (player.velX > 0) {
-						player.velX = Math.max(player.velX - (0.00005 + ((player.grounded) ? 0.0004 : 0))*(60/gameSpeed)*(60/gameSpeed), 0);
+						player.velX = Math.max(player.velX - (0.0002 + ((player.grounded) ? 0.0004 : 0))*(60/gameSpeed)*(60/gameSpeed), 0);
 					} else if (player.velX < 0) {
-						player.velX = Math.min(player.velX + (0.00005 + ((player.grounded) ? 0.0004 : 0))*(60/gameSpeed)*(60/gameSpeed), 0);
+						player.velX = Math.min(player.velX + (0.0002 + ((player.grounded) ? 0.0004 : 0))*(60/gameSpeed)*(60/gameSpeed), 0);
 					}
 
 					if (player.stun <= 0) {
