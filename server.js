@@ -10,7 +10,7 @@ var users = {};
 var games = {};
 var lobby = {};
 var port = 5000;
-var maxPlayers = 4;
+var maxPlayers = 7;
 var totalPlayers = 0;
 var stockTotal = 5;
 var gameSpeed = 30;
@@ -61,7 +61,7 @@ class Stage {
 
 class FinalDestination extends Stage {
   constructor() {
-    super([[0.15, 0.75, 0.85, 0.81875]], [[0.2, 0.6], [0.75, 0.6], [0.38, 0.6], [0.57, 0.6]], [-0.2, -0.2, 1.2, 1.2]);
+    super([[0.15, 0.75, 0.85, 0.81875]], [[0.2, 0.6], [0.75, 0.6], [0.38, 0.6], [0.57, 0.6], [0.29, 0.6], [0.66, 0.6], [0.47, 0.6]], [-0.2, -0.2, 1.2, 1.2]);
   }
 }
 
