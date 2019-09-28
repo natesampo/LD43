@@ -154,7 +154,6 @@ var selectedSlider = null;
 var actions = ['idle', 'stun', 'nair', 'neutral', 'run', 'airmove', 'forward', 'fair', 'uair', 'bair', 'dair', 'dtilt'];
 
 var player;
-var time;
 var stage;
 var frame;
 var game;
@@ -1820,7 +1819,6 @@ socket.on('canDoThat', function(move) {
 });
 
 socket.on('state', function(gameObject) {
-  time = gameObject.time;
   player = gameObject.players[socket.id];
   stage = gameObject.stage;
   game = gameObject;
@@ -1829,7 +1827,6 @@ socket.on('state', function(gameObject) {
 
 socket.on('games', function(games) {
   gamez = games;
-  time = null;
   player = null;
   stage = null;
   game = null;

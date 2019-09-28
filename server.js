@@ -284,9 +284,9 @@ function createFighter(data) {
 						effects[rawDataArray[i]][tempFrames[j]].push(function(user){shootProjectile(user,tempArg[1]);});
 					} else if (tempArg[0] == 'x' || tempArg[0] == 'velX' || tempArg[0] == 'y' || tempArg[0] == 'velY') {
 						if (tempArg[1] == 'set') {
-							effects[rawDataArray[i]][tempFrames[j]].push(function(user){user[tempArg[0]]=((((tempArg[0] =='x'||tempArg[0]=='velX')&&user.facing=='left')&&(tempArg[3]==1)) ? -1 : 1)*parseFloat(tempArg[2])});
+							effects[rawDataArray[i]][tempFrames[j]].push(function(user){user[tempArg[0]]=((((tempArg[0] =='x'||tempArg[0]=='velX')&&user.facing=='left')&&(tempArg[3]==1)) ? -1 : 1)*parseFloat(tempArg[2])*(60/gameSpeed)});
 						} else if (tempArg[1] == 'add') {
-							effects[rawDataArray[i]][tempFrames[j]].push(function(user){user[tempArg[0]]+=((((tempArg[0] =='x'||tempArg[0]=='velX')&&user.facing=='left')&&(tempArg[3]==1)) ? -1 : 1)*parseFloat(tempArg[2])});
+							effects[rawDataArray[i]][tempFrames[j]].push(function(user){user[tempArg[0]]+=((((tempArg[0] =='x'||tempArg[0]=='velX')&&user.facing=='left')&&(tempArg[3]==1)) ? -1 : 1)*parseFloat(tempArg[2])*(60/gameSpeed)});
 						}
 					}
 				}
@@ -1043,7 +1043,7 @@ setInterval(function() {
 					projectile = player.projectiles[l];
 					projectile.x += projectile.velocity[0];
 					projectile.y += projectile.velocity[1];
-					projectile.velocity[1] += projectile.weight*0.00075;
+					projectile.velocity[1] += projectile.weight*0.00075*(60/gameSpeed);
 
 					if (checkOffstage(projectile.x, projectile.y, ((game.started) ? game.stage : player.previewStage))) {
 						player.projectiles.splice(l, 1);
@@ -1099,15 +1099,15 @@ setInterval(function() {
 					player.animationFrame = (player.animationFrame + 1)%(player.fighter.animationTime*player.fighter.frames[player.action]);
 
 					if (game.started && !player.grounded) {
-						player.velY += 0.00075;
+						player.velY += (player.fighter.terminalVelocity/13.5)*(60/gameSpeed);
 					} else if (!game.started && !player.grounded) {
-						player.stageVelY += 0.00075;
+						player.stageVelY += (player.fighter.terminalVelocity/13.5)*(60/gameSpeed);
 					}
 
 					if (player.velX > 0) {
-						player.velX = Math.max(player.velX - 0.0005, 0);
+						player.velX = Math.max(player.velX - 0.00005 - ((player.grounded) ? 0.0004 : 0), 0)*(60/gameSpeed);
 					} else if (player.velX < 0) {
-						player.velX = Math.min(player.velX + 0.0005, 0);
+						player.velX = Math.min(player.velX + 0.00005 + ((player.grounded) ? 0.0004 : 0), 0)*(60/gameSpeed);
 					}
 
 					if (player.stun <= 0) {
@@ -1116,7 +1116,7 @@ setInterval(function() {
 						}
 						if (player.movement.left) {
 							if (game.started && player.velX > -player.fighter.runSpeed) {
-					    		player.velX -= 0.0023;
+					    		player.velX -= (player.fighter.runSpeed/1.31)*(60/gameSpeed);
 					    	}
 							if (player.action == 'idle' && player.grounded) {
 								player.action = 'run';
@@ -1132,11 +1132,11 @@ setInterval(function() {
 					    	if (!player.upPressed) {
 					      		if (game.started && player.jumps > 0) {
 					      			player.grounded = false;
-					      			player.velY = -player.fighter.jumpStrength;
+					      			player.velY = -player.fighter.jumpStrength*(60/gameSpeed);
 					      			player.jumps -= 1;
 					      		} else if (player.jumps > 0 && !game.started) {
 					      			player.grounded = false;
-					      			player.stageVelY = -player.fighter.jumpStrength;
+					      			player.stageVelY = -player.fighter.jumpStrength*(60/gameSpeed);
 					      			player.jumps -= 1;
 					      		}
 					      	}
@@ -1146,7 +1146,7 @@ setInterval(function() {
 				    	}
 				    	if (player.movement.right) {
 				    		if (game.started && player.velX < player.fighter.runSpeed) {
-					    		player.velX += 0.0023;
+					    		player.velX += (player.fighter.runSpeed/1.31)*(60/gameSpeed);
 					    	}
 				      		if (player.action == 'idle' && player.grounded) {
 								player.action = 'run';
@@ -1160,9 +1160,9 @@ setInterval(function() {
 						}
 				    	if (player.movement.down) {
 				    		if (game.started && !player.grounded && player.velY < player.fighter.terminalVelocity*1.7) {
-					      		player.velY += 0.002;
+					      		player.velY += (player.fighter.terminalVelocity/5)*(60/gameSpeed);
 					      	} else if (game.started && !player.grounded && player.stageVelY < player.fighter.terminalVelocity*1.7) {
-					      		player.stageVelY += 0.002;
+					      		player.stageVelY += (player.fighter.terminalVelocity/5)*(60/gameSpeed);
 					      	}
 				    	}
 				    } else {
@@ -1172,7 +1172,7 @@ setInterval(function() {
 				    }
 
 			    	if (player.action != 'stun' && (game.started && player.velY > player.fighter.terminalVelocity) || (!game.started && player.stageVelY < player.fighter.terminalVelocity)) {
-			    		player.velY = Math.max(player.velY - 0.0005, player.fighter.terminalVelocity);
+			    		player.velY = Math.max(player.velY - player.fighter.terminalVelocity/20, player.fighter.terminalVelocity)*(60/gameSpeed);
 			    	}
 
 			    	if ((game.started && player.velY < 0) || (!game.started && player.stageVelY > 0)) {
