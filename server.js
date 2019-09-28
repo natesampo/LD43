@@ -13,7 +13,7 @@ var port = 5000;
 var maxPlayers = 4;
 var totalPlayers = 0;
 var stockTotal = 5;
-var gameSpeed = 60;
+var gameSpeed = 30;
 var rawData = {};
 var spriteData = {};
 var fighters = [];
@@ -888,7 +888,7 @@ setInterval(function() {
 			    frame = Math.floor(player.animationFrame/player.fighter.animationTime).toString();
 
 			    if (player.lastAttack >= 0) {
-			    	player.lastAttack -= 1;
+			    	player.lastAttack -= (60/gameSpeed);
 			    }
 
 			    if(player && player.fighter && stage && stage.hitboxes && !player.grounded) {
@@ -1043,7 +1043,7 @@ setInterval(function() {
 					projectile = player.projectiles[l];
 					projectile.x += projectile.velocity[0];
 					projectile.y += projectile.velocity[1];
-					projectile.velocity[1] += projectile.weight*0.00075*(60/gameSpeed);
+					projectile.velocity[1] += projectile.weight*0.00075*(60/gameSpeed)*(60/gameSpeed);
 
 					if (checkOffstage(projectile.x, projectile.y, ((game.started) ? game.stage : player.previewStage))) {
 						player.projectiles.splice(l, 1);
@@ -1096,18 +1096,18 @@ setInterval(function() {
 						player.animationFrame = 0;
 					}
 
-					player.animationFrame = (player.animationFrame + 1)%(player.fighter.animationTime*player.fighter.frames[player.action]);
+					player.animationFrame = (player.animationFrame + (60/gameSpeed))%(player.fighter.animationTime*player.fighter.frames[player.action]);
 
 					if (game.started && !player.grounded) {
-						player.velY += (player.fighter.terminalVelocity/13.5)*(60/gameSpeed);
+						player.velY += (player.fighter.terminalVelocity/13.5)*(60/gameSpeed)*(60/gameSpeed);
 					} else if (!game.started && !player.grounded) {
-						player.stageVelY += (player.fighter.terminalVelocity/13.5)*(60/gameSpeed);
+						player.stageVelY += (player.fighter.terminalVelocity/13.5)*(60/gameSpeed)*(60/gameSpeed);
 					}
 
 					if (player.velX > 0) {
-						player.velX = Math.max(player.velX - (0.00005 + ((player.grounded) ? 0.0004 : 0))*(60/gameSpeed), 0);
+						player.velX = Math.max(player.velX - (0.00005 + ((player.grounded) ? 0.0004 : 0))*(60/gameSpeed)*(60/gameSpeed), 0);
 					} else if (player.velX < 0) {
-						player.velX = Math.min(player.velX + (0.00005 + ((player.grounded) ? 0.0004 : 0))*(60/gameSpeed), 0);
+						player.velX = Math.min(player.velX + (0.00005 + ((player.grounded) ? 0.0004 : 0))*(60/gameSpeed)*(60/gameSpeed), 0);
 					}
 
 					if (player.stun <= 0) {
@@ -1115,7 +1115,7 @@ setInterval(function() {
 							player.action = 'idle';
 						}
 						if (player.movement.left) {
-							if (game.started && player.velX > -player.fighter.runSpeed) {
+							if (game.started && player.velX > -player.fighter.runSpeed*(60/gameSpeed)) {
 					    		player.velX -= (player.fighter.runSpeed/1.31)*(60/gameSpeed);
 					    	}
 							if (player.action == 'idle' && player.grounded) {
@@ -1145,7 +1145,7 @@ setInterval(function() {
 				    		player.upPressed = false;
 				    	}
 				    	if (player.movement.right) {
-				    		if (game.started && player.velX < player.fighter.runSpeed) {
+				    		if (game.started && player.velX < player.fighter.runSpeed*(60/gameSpeed)) {
 					    		player.velX += (player.fighter.runSpeed/1.31)*(60/gameSpeed);
 					    	}
 				      		if (player.action == 'idle' && player.grounded) {
@@ -1159,9 +1159,9 @@ setInterval(function() {
 							}
 						}
 				    	if (player.movement.down) {
-				    		if (game.started && !player.grounded && player.velY < player.fighter.terminalVelocity*1.7) {
+				    		if (game.started && !player.grounded && player.velY < player.fighter.terminalVelocity*1.7*(60/gameSpeed)) {
 					      		player.velY += (player.fighter.terminalVelocity/5)*(60/gameSpeed);
-					      	} else if (game.started && !player.grounded && player.stageVelY < player.fighter.terminalVelocity*1.7) {
+					      	} else if (game.started && !player.grounded && player.stageVelY < player.fighter.terminalVelocity*1.7*(60/gameSpeed)) {
 					      		player.stageVelY += (player.fighter.terminalVelocity/5)*(60/gameSpeed);
 					      	}
 				    	}
@@ -1171,7 +1171,7 @@ setInterval(function() {
 				    	player.animationFrame = 0;
 				    }
 
-			    	if (player.action != 'stun' && (game.started && player.velY > player.fighter.terminalVelocity) || (!game.started && player.stageVelY < player.fighter.terminalVelocity)) {
+			    	if (player.action != 'stun' && (game.started && player.velY > player.fighter.terminalVelocity*(60/gameSpeed)) || (!game.started && player.stageVelY < player.fighter.terminalVelocity*(60/gameSpeed))) {
 			    		player.velY = Math.max(player.velY - (player.fighter.terminalVelocity/20)*(60/gameSpeed), player.fighter.terminalVelocity*(60/gameSpeed));
 			    	}
 
