@@ -916,11 +916,12 @@ setInterval(function() {
 			    }
 
 			    if(player && player.fighter && stage && stage.hitboxes && player.grounded) {
+			    	player.grounded = false;
 			      	for (var hitbox1 in player.fighter.hurtboxes[player.action][frame]) {
 			        	for (var j in ((game.started) ? stage.hitboxes : player.previewStage.hitboxes)) {
 			          		hitbox2 = ((game.started) ? stage.hitboxes[j] : player.previewStage.hitboxes[j]);
-			          		if (!checkHit([player.x + player.fighter.hurtboxes[player.action][frame][hitbox1][0]*spriteWidth, 0.05 + player.y + player.fighter.hurtboxes[player.action][frame][hitbox1][1]*spriteHeight, player.x + player.fighter.hurtboxes[player.action][frame][hitbox1][2]*spriteWidth, 0.05 + player.y + player.fighter.hurtboxes[player.action][frame][hitbox1][3]*spriteHeight], hitbox2)) {
-			            		player.grounded = false;
+			          		if (checkHit([player.x + player.fighter.hurtboxes[player.action][frame][hitbox1][0]*spriteWidth, 0.05 + player.y + player.fighter.hurtboxes[player.action][frame][hitbox1][1]*spriteHeight, player.x + player.fighter.hurtboxes[player.action][frame][hitbox1][2]*spriteWidth, 0.05 + player.y + player.fighter.hurtboxes[player.action][frame][hitbox1][3]*spriteHeight], hitbox2)) {
+			            		player.grounded = true;
 			          		}
 			        	}
 			      	}

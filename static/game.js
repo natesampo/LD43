@@ -38,7 +38,7 @@ var fighterWeightLength = 8;
 var fighterRunSpeedLength = 8;
 var maxPlayers = 7;
 var pingTime = 2000;
-var gameSpeed = 60;
+var gameSpeed = 30;
 var demo = false;
 
 var tempName = '';
@@ -768,19 +768,19 @@ function newFighterLoadExisting(ind) {
   }
 
   imgs['new'] = {};
-  for(var i in imgs['fighters'][fighter.name]) {
+  for(var i=0; i<fighter.sprites; i++) {
     imgs['new'][i] = {};
-    for(var j in imgs['fighters'][fighter.name][i]) {
+    for(var j in imgs['fighters'][fighter.name]) {
       imgs['new'][i][j] = {};
       for(var k=0; k<fighter.frames[j]; k++) {
-        var img = imgs['fighters'][fighter.name][i][j];
+        var img = imgs['fighters'][fighter.name][j];
         var tempCanvas = document.createElement('canvas');
         var tempContext = tempCanvas.getContext('2d');
         tempContext.imageSmoothingEnabled = false;
         tempCanvas.width = img.width/fighter.frames[j];
-        tempCanvas.height = img.height;
+        tempCanvas.height = img.height/fighter.sprites;
 
-        tempContext.drawImage(img, k*tempCanvas.width, 0, tempCanvas.width, tempCanvas.height, 0, 0, tempCanvas.width, tempCanvas.height);
+        tempContext.drawImage(img, k*tempCanvas.width, newFighterSprite*tempCanvas.height, tempCanvas.width, tempCanvas.height, 0, 0, tempCanvas.width, tempCanvas.height);
 
         var img1 = new Image();
         img1.src = tempCanvas.toDataURL('image/png');
@@ -788,7 +788,18 @@ function newFighterLoadExisting(ind) {
       }
     }
 
-    imgs['new'][i]['stock'][0] = imgs['fighters'][fighter.name][i]['stock'];
+    var img = imgs['fighters'][fighter.name]['stock'];
+    var tempCanvas = document.createElement('canvas');
+    var tempContext = tempCanvas.getContext('2d');
+    tempContext.imageSmoothingEnabled = false;
+    tempCanvas.width = img.width;
+    tempCanvas.height = img.height/fighter.sprites;
+
+    tempContext.drawImage(img, tempCanvas.width, newFighterSprite*tempCanvas.height, tempCanvas.width, tempCanvas.height, 0, 0, tempCanvas.width, tempCanvas.height);
+
+    var img1 = new Image();
+    img1.src = tempCanvas.toDataURL('image/png');
+    imgs['new'][i]['stock'][0] = img1;
   }
 
   while(createFighterButtons.length != createFighterButtonsLength+Object.keys(imgs['new'][0][newFighterAction]).length) {
