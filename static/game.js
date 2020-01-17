@@ -104,6 +104,7 @@ var ping = 0;
 var sendPingTime = -1;
 var newFighterFrame = '0';
 var newFighterSprite = 0;
+var newFighterSprites = 1;
 var newFighterAction = 'idle';
 var newFighterXEffect = {'idle': {'0': 0}, 'stun': {'0': 0}, 'nair': {'0': 0}, 'neutral': {'0': 0}, 'run': {'0': 0}, 'airmove': {'0': 0}, 'forward': {'0': 0}, 'fair': {'0': 0}, 'uair': {'0': 0}, 'bair': {'0': 0}, 'dair': {'0': 0}, 'dtilt': {'0': 0}};
 var newFighterYEffect = {'idle': {'0': 0}, 'stun': {'0': 0}, 'nair': {'0': 0}, 'neutral': {'0': 0}, 'run': {'0': 0}, 'airmove': {'0': 0}, 'forward': {'0': 0}, 'fair': {'0': 0}, 'uair': {'0': 0}, 'bair': {'0': 0}, 'dair': {'0': 0}, 'dtilt': {'0': 0}};
@@ -643,7 +644,7 @@ function encodeNewFighter() {
     newFighterString = newFighterString.slice(0, -1);
   }
 
-  newFighterString = newFighterString + '\nsprites@0';
+  newFighterString = newFighterString + '\nsprites@' + newFighterSprites.toString();
 
   imgs['demo'] = compileNewFighterImages();
 
