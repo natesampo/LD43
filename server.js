@@ -1112,9 +1112,11 @@ setInterval(function() {
 					    	}
 							if (player.action == 'idle' && player.grounded) {
 								player.action = 'run';
+								player.animationFrame = 0;
 							}
 							if (player.action == 'idle' && !player.grounded) {
 								player.action = 'airmove';
+								player.animationFrame = 0;
 							}
 							if (player.grounded) {
 								player.facing = 'left';
@@ -1142,9 +1144,11 @@ setInterval(function() {
 					    	}
 				      		if (player.action == 'idle' && player.grounded) {
 								player.action = 'run';
+								player.animationFrame = 0;
 							}
 							if (player.action == 'idle' && !player.grounded) {
 								player.action = 'airmove';
+								player.animationFrame = 0;
 							}
 							if (player.grounded) {
 								player.facing = 'right';
@@ -1194,7 +1198,7 @@ setInterval(function() {
 						}
 					}
 
-			    	if (player.action == 'idle' || player.action == 'airmove') {
+			    	if ((player.action == 'idle' || player.action == 'airmove') && player.lastFrame[1] != player.action) {
 			    		player.animationFrame = 0;
 			    	}
 
