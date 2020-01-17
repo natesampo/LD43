@@ -343,6 +343,16 @@ canvas.style.left = 0;
 var context = canvas.getContext('2d');
 context.imageSmoothingEnabled = false;
 
+function createFighterButtonIDExists(id) {
+  for (var i in createFighterButtons) {
+    if (createFighterButtons[i].id == id) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 function breakUpSpriteSheet(spriteSheet, num) {
   var return_imgs = {};
 
@@ -2247,7 +2257,7 @@ document.addEventListener('mouseup', function(event) {
     }
     tempFighterRunSpeed = '';
 
-    if(namingProjectileName && tempProjectileName != '' && !contains(Object.keys(newFighterData['projectiles']), tempProjectileName) && !contains(Object.keys(newFighterData['effects']), tempProjectileName) && tempProjectileName != 'stock') {
+    if(namingProjectileName && tempProjectileName != '' && !contains(Object.keys(newFighterData['projectiles']), tempProjectileName) && !contains(Object.keys(newFighterData['effects']), tempProjectileName) && isNaN(tempProjectileName) && !createFighterButtonIDExists(tempProjectileName)) {
       for(var i in newFighterData) {
         if(typeof newFighterData[i] === 'object' && contains(Object.keys(newFighterData[i]), newFighterAction)) {
           newFighterData[i][tempProjectileName] = newFighterData[i][newFighterAction];
@@ -2644,7 +2654,7 @@ document.addEventListener('keydown', function(event) {
         newFighterProjectile[newFighterAction][newFighterFrame] = tempProjectile;
         tempProjectile = '';
         newFighterData['effects'][newFighterAction][newFighterFrame]['projectile'] = newFighterProjectile[newFighterAction][newFighterFrame];
-      } else if(namingProjectileName && tempProjectileName != '' && !contains(Object.keys(newFighterData['projectiles']), tempProjectileName) && !contains(Object.keys(newFighterData['effects']), tempProjectileName) && tempProjectileName != 'stock') {
+      } else if(namingProjectileName && tempProjectileName != '' && !contains(Object.keys(newFighterData['projectiles']), tempProjectileName) && !contains(Object.keys(newFighterData['effects']), tempProjectileName) && isNaN(tempProjectileName) && !createFighterButtonIDExists(tempProjectileName)) {
         for(var i in newFighterData) {
           if(typeof newFighterData[i] === 'object' && contains(Object.keys(newFighterData[i]), newFighterAction)) {
             newFighterData[i][tempProjectileName] = newFighterData[i][newFighterAction];
