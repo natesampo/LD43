@@ -441,7 +441,12 @@ io.on('connection', function(socket) {
 	socket.on('changeStage', function(newStage) {
 		try {
 			var game = games[users[socket.id].inGame];
-			game.stage = stages[newStage];
+			for (var i in stages) {
+				if (stages[i].name == newStage) {
+					game.stage = stages[i];
+					break;
+				}
+			}
 		}
 		catch (e) {
 			console.log(e);

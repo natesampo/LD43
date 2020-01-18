@@ -1824,13 +1824,17 @@ setInterval(function() {
         context.drawImage(tempSheet, (Math.floor(lobbyFrame/fighters[this.id.substring(7)].animationTime)%(fighters[this.id.substring(7)].frames['idle']))*(tempSheet.width/fighters[this.id.substring(7)].frames['idle']), 0, tempSheet.width/fighters[this.id.substring(7)].frames['idle'], tempSheet.height/fighters[this.id.substring(7)].sprites, this.getX(), this.getY(), ((fighters[this.id.substring(7)].spriteWidth*canvas.width > this.getWidth() || fighters[this.id.substring(7)].spriteHeight*canvas.height > this.getHeight()) ? this.getWidth() : fighters[this.id.substring(7)].spriteWidth*canvas.width), ((fighters[this.id.substring(7)].spriteWidth*canvas.width > this.getWidth() || fighters[this.id.substring(7)].spriteHeight*canvas.height > this.getHeight()) ? this.getHeight() : fighters[this.id.substring(7)].spriteHeight*canvas.height));
         return null;}, function() {return true;}));
     }
+
+    for (let i=0; i<Object.keys(imgs['stages']).length; i++) {
+      preGameButtons.push(new Button(Object.keys(imgs['stages'])[i], function() {return canvas.width/19 + (this.getWidth() + this.lineWidth*10)*i;}, function() {return canvas.height/2;}, function() {return canvas.width/10;}, function() {return canvas.height/8}, 3, function() {socket.emit('changeStage', this.id);}, function() {return true;}, function() {return 'white';}, function() {return [];}, 'black', function() {return (canvas.width/106.67).toString() + 'px Arial';}, function() {context.drawImage(imgs['stages'][this.id], this.getX(), this.getY(), this.getWidth(), this.getHeight()); if(game && game.stage && game.stage.name == this.id) {context.lineWidth = 6; context.strokeStyle = 'red'; context.strokeRect(this.getX(), this.getY(), this.getWidth(), this.getHeight());} return null;}, function() {return true;}));
+    }
   }
 
 
   if (game && game != null && !game.started) {
     lobbyFrame += 1;
 
-    for (var i=preGameButtons.length-1; i>preGameButtonsLength+fighters.length-1; i--) {
+    for (var i=preGameButtons.length-1; i>preGameButtonsLength+fighters.length+Object.keys(imgs['stages']).length-1; i--) {
       preGameButtons.splice(i, 1);
     }
 
