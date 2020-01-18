@@ -10,13 +10,14 @@ var users = {};
 var games = {};
 var lobby = {};
 var port = 5000;
-var maxPlayers = 7;
+var maxPlayers = 4;
 var totalPlayers = 0;
 var stockTotal = 5;
 var gameSpeed = 30;
 var rawData = {};
 var spriteData = {};
 var fighters = [];
+var stages = [];
 var names = ['Tony', 'Vinny', 'Bruno', 'Frank', 'Mario', 'Vito', 'Al', 'Gerardo', 'Angelo', 'Giovanni', 'Salvatore', 'Carmine', 'Fabrizio', 'Dominic', 'Alphonse', 'Vic', 'Giuseppe', 'Joey', 'Tommaso', 'Johnny', 'Vincent', 'Nicolo', 'Michael', 'Phil', 'Victor', 'Vincenzo', 'Luigi', 'Stefano', 'Giacomo', 'Santo', 'Ignazio'];
 
 app.use('/', express.static(__dirname + '/'));
@@ -47,7 +48,9 @@ function setValue(val) {
 }
 
 class Stage {
-	constructor(hitboxes, spawns, bounds) {
+	constructor(name, hitboxes, spawns, bounds) {
+		this.name = name;
+
 		//[[x0, y0, rx, ry], [x1, y1, rx, ry], ...]
 		this.hitboxes = hitboxes;
 
@@ -59,19 +62,7 @@ class Stage {
 	}
 }
 
-class FinalDestination extends Stage {
-  constructor() {
-    super([[0.15, 0.75, 0.85, 0.81875]], [[0.2, 0.6], [0.75, 0.6], [0.38, 0.6], [0.57, 0.6], [0.29, 0.6], [0.66, 0.6], [0.47, 0.6]], [-0.2, -0.2, 1.2, 1.2]);
-  }
-}
-
-class Preview extends Stage {
-  constructor() {
-    super([[0.801637, 0.31, 0.853720333, 0.6]], [[0.8025, 0.19]], [0.801637, 0.195238095, 0.853720333, 0.334126983889]);
-  }
-}
-
-stages = [new Preview(), new FinalDestination()];
+var previewStage = new Stage('preview', [[0.4, 0.5, 0.55, 0.57]], [[0.45, 0.4]], [0.2, 0.1, 1, 0.85]);
 
 class Projectile {
 	constructor(id, name, facing, owner, x, y, width, height, velocity, weight, animationTime, hitsLeft, frames, hitboxes, attacks) {
@@ -160,6 +151,23 @@ fs.readdir('static/fighters', function(err, items) {
 	}
 
 	console.log('Fighters Loaded \n');
+});
+
+rawData['stages'] = {};
+spriteData['stages'] = {};
+fs.readdir('static/stages', function(err, items) {
+	for (var i=0; i<items.length; i++) {
+		console.log('Loading ' + items[i]);
+		var temprawData = fs.readFileSync('static/stages/' + items[i], 'utf8');
+
+		rawData['stages'][items[i].slice(0, -4)] = splitData(temprawData);
+
+		stages.push(createStage(rawData['stages'][items[i].slice(0, -4)]));
+
+		spriteData['stages'][stages[i].name] = '/static/sprites/stages/' + stages[i].name + '.png';;
+	}
+
+	console.log('Stages Loaded \n');
 });
 
 spriteData['menu'] = {};
@@ -315,6 +323,36 @@ function createFighter(data) {
 		parseInt(data['sprites']));
 }
 
+function createStage(data) {
+	var rawDataArray = data['hitboxes'].split(';');
+	var hitboxes = [];
+	for (var i=0; i<rawDataArray.length; i++) {
+		var tempHitbox = rawDataArray[i].split(',');
+		hitboxes.push([]);
+		for (var j=0; j<tempHitbox.length; j++) {
+			hitboxes[i].push(parseFloat(tempHitbox[j]));
+		}
+	}
+
+	rawDataArray = data['spawns'].split(';');
+	var spawns = [];
+	for (var i=0; i<rawDataArray.length; i++) {
+		var tempSpawn = rawDataArray[i].split(',');
+		spawns.push([]);
+		for (var j=0; j<tempSpawn.length; j++) {
+			spawns[i].push(parseFloat(tempSpawn[j]));
+		}
+	}
+
+	rawDataArray = data['bounds'].split(',');
+	var bounds = [];
+	for (var i=0; i<rawDataArray.length; i++) {
+		bounds.push(parseFloat(rawDataArray[i]));
+	}
+	
+	return new Stage(data['name'], hitboxes, spawns, bounds);
+}
+
 io.on('connection', function(socket) {
 	socket.on('new player', function() {
 		users[socket.id] = {
@@ -333,20 +371,6 @@ io.on('connection', function(socket) {
 	socket.on('startGame', function() {
 		try {
 			var game = games[users[socket.id].inGame];
-
-			for (var i in game.players) {
-				var player = game.players[i];
-				var stockSacrifices = 0;
-				for (var j in player.sacrifices) {
-					var sacrifice = player.sacrifices[j];
-					if (sacrifice.substring(0, 5) == 'stock') {
-						stockSacrifices++;
-					}
-				}
-				player.stock = stockTotal - stockSacrifices;
-			}
-
-			game.stage = stages[1];
 			game.started = true;
 		}
 		catch (e) {
@@ -409,15 +433,10 @@ io.on('connection', function(socket) {
 			console.log(e);
 		}
 	});
-	socket.on('sacrifice', function(control) {
+	socket.on('changeStage', function(newStage) {
 		try {
-			var player = games[users[socket.id].inGame].players[socket.id];
-
-			if (player.sacrifices.includes(control)) {
-				player.sacrifices.splice(player.sacrifices.indexOf(control), 1);
-			} else {
-				player.sacrifices.push(control);
-			}
+			var game = games[users[socket.id].inGame];
+			game.stage = stages[newStage];
 		}
 		catch (e) {
 			console.log(e);
@@ -431,128 +450,68 @@ io.on('connection', function(socket) {
 				if (direction == 'left') {
 					if (player.grounded) {
 						if (player.action == 'run') {
-							if (!player.sacrifices.includes('forward')) {
-								player.action = 'forward';
-								player.lastAttack = player.fighter.animationTime*(parseInt(player.fighter.frames[player.action])+2);
-								player.animationFrame = 0;
-								io.to(socket.id).emit('canDoThat', 'forward');
-							} else if (!game.started) {
-								io.to(player.id).emit('cantDoThat', 'forward');
-							}
+							player.action = 'forward';
+							player.lastAttack = player.fighter.animationTime*(parseInt(player.fighter.frames[player.action])+2);
+							player.animationFrame = 0;
 						} else {
-							if (!player.sacrifices.includes('neutral')) {
-								player.facing = 'left';
-								player.action = 'neutral';
-								player.lastAttack = player.fighter.animationTime*(parseInt(player.fighter.frames[player.action])+2);
-								player.animationFrame = 0;
-								io.to(socket.id).emit('canDoThat', 'neutral');
-							} else if (!game.started) {
-								io.to(player.id).emit('cantDoThat', 'neutral');
-							}
+							player.facing = 'left';
+							player.action = 'neutral';
+							player.lastAttack = player.fighter.animationTime*(parseInt(player.fighter.frames[player.action])+2);
+							player.animationFrame = 0;
 						}
 					} else {
 						if (player.facing == 'left') {
-							if (!player.sacrifices.includes('fair')) {
-								player.action = 'fair';
-								player.lastAttack = player.fighter.animationTime*(parseInt(player.fighter.frames[player.action])+2);
-								player.animationFrame = 0;
-								io.to(socket.id).emit('canDoThat', 'fair');
-							} else if (!game.started) {
-								io.to(player.id).emit('cantDoThat', 'fair');
-							}
+							player.action = 'fair';
+							player.lastAttack = player.fighter.animationTime*(parseInt(player.fighter.frames[player.action])+2);
+							player.animationFrame = 0;
 						} else {
-							if (!player.sacrifices.includes('bair')) {
-								player.action = 'bair';
-								player.lastAttack = player.fighter.animationTime*(parseInt(player.fighter.frames[player.action])+2);
-								player.animationFrame = 0;
-								io.to(socket.id).emit('canDoThat', 'bair');
-							} else if (!game.started) {
-								io.to(player.id).emit('cantDoThat', 'bair');
-							}
+							player.action = 'bair';
+							player.lastAttack = player.fighter.animationTime*(parseInt(player.fighter.frames[player.action])+2);
+							player.animationFrame = 0;
 						}
 					}
 				} else if (direction == 'right') {
 					if (player.grounded) {
 						if (player.action == 'run') {
-							if (!player.sacrifices.includes('forward')) {
-								player.action = 'forward';
-								player.lastAttack = player.fighter.animationTime*(parseInt(player.fighter.frames[player.action])+2);
-								player.animationFrame = 0;
-								io.to(socket.id).emit('canDoThat', 'forward');
-							} else if (!game.started) {
-								io.to(player.id).emit('cantDoThat', 'forward');
-							}
+							player.action = 'forward';
+							player.lastAttack = player.fighter.animationTime*(parseInt(player.fighter.frames[player.action])+2);
+							player.animationFrame = 0;
 						} else {
-							if (!player.sacrifices.includes('neutral')) {
-								player.facing = 'right';
-								player.action = 'neutral';
-								player.lastAttack = player.fighter.animationTime*(parseInt(player.fighter.frames[player.action])+2);
-								player.animationFrame = 0;
-								io.to(socket.id).emit('canDoThat', 'neutral');
-							} else if (!game.started) {
-								io.to(player.id).emit('cantDoThat', 'neutral');
-							}
+							player.facing = 'right';
+							player.action = 'neutral';
+							player.lastAttack = player.fighter.animationTime*(parseInt(player.fighter.frames[player.action])+2);
+							player.animationFrame = 0;
 						}
 					} else {
 						if (player.facing == 'right') {
-							if (!player.sacrifices.includes('fair')) {
-								player.action = 'fair';
-								player.lastAttack = player.fighter.animationTime*(parseInt(player.fighter.frames[player.action])+2);
-								player.animationFrame = 0;
-								io.to(socket.id).emit('canDoThat', 'fair');
-							} else if (!game.started) {
-								io.to(player.id).emit('cantDoThat', 'fair');
-							}
+							player.action = 'fair';
+							player.lastAttack = player.fighter.animationTime*(parseInt(player.fighter.frames[player.action])+2);
+							player.animationFrame = 0;
 						} else {
-							if (!player.sacrifices.includes('bair')) {
-								player.action = 'bair';
-								player.lastAttack = player.fighter.animationTime*(parseInt(player.fighter.frames[player.action])+2);
-								player.animationFrame = 0;
-								io.to(socket.id).emit('canDoThat', 'bair');
-							} else if (!game.started) {
-								io.to(player.id).emit('cantDoThat', 'bair');
-							}
+							player.action = 'bair';
+							player.lastAttack = player.fighter.animationTime*(parseInt(player.fighter.frames[player.action])+2);
+							player.animationFrame = 0;
 						}
 					}
 				} else if (direction == 'up') {
 					if (player.grounded) {
-						if (!player.sacrifices.includes('nair')) {
-							player.action = 'nair';
-							player.lastAttack = player.fighter.animationTime*(parseInt(player.fighter.frames[player.action])+2);
-							player.animationFrame = 0;
-							io.to(socket.id).emit('canDoThat', 'nair');
-						} else if (!game.started) {
-							io.to(player.id).emit('cantDoThat', 'nair');
-						}
+						player.action = 'nair';
+						player.lastAttack = player.fighter.animationTime*(parseInt(player.fighter.frames[player.action])+2);
+						player.animationFrame = 0;
 					} else {
-						if (!player.sacrifices.includes('uair')) {
-							player.action = 'uair';
-							player.lastAttack = player.fighter.animationTime*(parseInt(player.fighter.frames[player.action])+2);
-							player.animationFrame = 0;
-							io.to(socket.id).emit('canDoThat', 'uair');
-						} else if (!game.started) {
-							io.to(player.id).emit('cantDoThat', 'uair');
-						}
+						player.action = 'uair';
+						player.lastAttack = player.fighter.animationTime*(parseInt(player.fighter.frames[player.action])+2);
+						player.animationFrame = 0;
 					}
 				} else if (direction == 'down') {
 					if (player.grounded) {
-						if (!player.sacrifices.includes('dtilt')) {
-							player.action = 'dtilt';
-							player.lastAttack = player.fighter.animationTime*(parseInt(player.fighter.frames[player.action])+2);
-							player.animationFrame = 0;
-							io.to(socket.id).emit('canDoThat', 'dtilt');
-						} else if (!game.started) {
-							io.to(player.id).emit('cantDoThat', 'dtilt');
-						}
+						player.action = 'dtilt';
+						player.lastAttack = player.fighter.animationTime*(parseInt(player.fighter.frames[player.action])+2);
+						player.animationFrame = 0;
 					} else {
-						if (!player.sacrifices.includes('dair')) {
-							player.action = 'dair';
-							player.lastAttack = player.fighter.animationTime*(parseInt(player.fighter.frames[player.action])+2);
-							player.animationFrame = 0;
-							io.to(socket.id).emit('canDoThat', 'dair');
-						} else if (!game.started) {
-							io.to(player.id).emit('cantDoThat', 'dair');
-						}
+						player.action = 'dair';
+						player.lastAttack = player.fighter.animationTime*(parseInt(player.fighter.frames[player.action])+2);
+						player.animationFrame = 0;
 					}
 				}
 			}
@@ -748,8 +707,8 @@ function joinGame(socketID, gameID) {
 		game.players[socketID] = {
 		    id: socketID,
 		    name: users[socketID].name,
-		    x: game.stage.spawns[0][0],
-		    y: game.stage.spawns[0][1],
+		    x: previewStage.spawns[0][0],
+		    y: previewStage.spawns[0][1],
 		    velX: 0,
 		    velY: 0,
 		    fighter: game.fighters[0],
@@ -773,19 +732,13 @@ function joinGame(socketID, gameID) {
 			},
 		    facing: 'right',
 		    stun: 0,
-		    sacrifices: [],
 		    projectiles: [],
 		    lost: false,
 		    won: false,
 		    projectileID: 0,
-		    previewStage: new Preview(),
-		    stageVelY: 0,
 		    sprite: 0,
 		    demo: false
 		};
-
-		game.players[socketID].x = game.players[socketID].previewStage.spawns[0][0];
-		game.players[socketID].y = game.players[socketID].previewStage.spawns[0][1];
 
 		renameGame(game);
 
@@ -802,7 +755,7 @@ function createGame(socketID, v, newFighter, newProjectiles) {
 		host: socketID,
 		started: false,
 		time: new Date(),
-		stage: stages[1],
+		stage: stages[0],
 		players: {},
 		fighters: ((newFighter) ? [createFighter(splitData(newFighter))] : fighters),
 		visible: v,
@@ -812,8 +765,8 @@ function createGame(socketID, v, newFighter, newProjectiles) {
 	games[socketID].players[socketID] = {
 	    id: socketID,
 	    name: users[socketID].name,
-	    x: 0,
-	    y: 0,
+	    x: previewStage.spawns[0][0],
+	    y: previewStage.spawns[0][1],
 	    velX: 0,
 	    velY: 0,
 	    fighter: games[socketID].fighters[0],
@@ -837,19 +790,13 @@ function createGame(socketID, v, newFighter, newProjectiles) {
 		},
 	    facing: 'right',
 	    stun: 0,
-	    sacrifices: [],
 	    projectiles: [],
 	    lost: false,
 		won: false,
 		projectileID: 0,
-		previewStage: new Preview(),
-		stageVelY: 0,
 		sprite: 0,
 		demo: (newFighter != null)
 	};
-
-	games[socketID].players[socketID].x = games[socketID].players[socketID].previewStage.spawns[0][0];
-	games[socketID].players[socketID].y = games[socketID].players[socketID].previewStage.spawns[0][1];
 
 	users[socketID].inGame = socketID;
 
@@ -884,15 +831,14 @@ setInterval(function() {
 
 			    if(player && player.fighter && stage && stage.hitboxes && !player.grounded) {
 			      	for (var hitbox1 in player.fighter.hurtboxes[player.action][frame]) {
-			        	for (var j in ((game.started) ? stage.hitboxes : player.previewStage.hitboxes)) {
-				          	hitbox2 = ((game.started) ? stage.hitboxes[j] : player.previewStage.hitboxes[j]);
+			        	for (var j in ((game.started) ? stage.hitboxes : previewStage.hitboxes)) {
+				          	hitbox2 = ((game.started) ? stage.hitboxes[j] : previewStage.hitboxes[j]);
 				          	if (checkHit([player.x + player.fighter.hurtboxes[player.action][frame][hitbox1][0]*spriteWidth, player.y + player.fighter.hurtboxes[player.action][frame][hitbox1][1]*spriteHeight, player.x + player.fighter.hurtboxes[player.action][frame][hitbox1][2]*spriteWidth, player.y + player.fighter.hurtboxes[player.action][frame][hitbox1][3]*spriteHeight], hitbox2)) {
 				            	if(player.x + player.fighter.hurtboxes[player.action][frame][hitbox1][0]*spriteWidth > hitbox2[0]) {
 				              		if(player.x + player.fighter.hurtboxes[player.action][frame][hitbox1][2]*spriteWidth < hitbox2[2]) {
 				                		//if(hitbox1 == 'leftleg' || hitbox1 == 'rightleg') {
 			                 	 		player.y = hitbox2[1] - player.fighter.hurtboxes[player.action][frame][hitbox1][3]*spriteHeight;
 										player.velY = 0;
-										player.stageVelY = 0;
 										player.grounded = true;
 										player.jumps = player.fighter.jumps;
 				                		//}
@@ -918,8 +864,8 @@ setInterval(function() {
 			    if(player && player.fighter && stage && stage.hitboxes && player.grounded) {
 			    	player.grounded = false;
 			      	for (var hitbox1 in player.fighter.hurtboxes[player.action][frame]) {
-			        	for (var j in ((game.started) ? stage.hitboxes : player.previewStage.hitboxes)) {
-			          		hitbox2 = ((game.started) ? stage.hitboxes[j] : player.previewStage.hitboxes[j]);
+			        	for (var j in ((game.started) ? stage.hitboxes : previewStage.hitboxes)) {
+			          		hitbox2 = ((game.started) ? stage.hitboxes[j] : previewStage.hitboxes[j]);
 			          		if (checkHit([player.x + player.fighter.hurtboxes[player.action][frame][hitbox1][0]*spriteWidth, 0.05 + player.y + player.fighter.hurtboxes[player.action][frame][hitbox1][1]*spriteHeight, player.x + player.fighter.hurtboxes[player.action][frame][hitbox1][2]*spriteWidth, 0.05 + player.y + player.fighter.hurtboxes[player.action][frame][hitbox1][3]*spriteHeight], hitbox2)) {
 			            		player.grounded = true;
 			          		}
@@ -1017,8 +963,8 @@ setInterval(function() {
 			      	var projectile = player.projectiles[i];
 			      	for (var j in projectile.hitboxes[projectileFrame]) {
 			        	var hitbox1 = ((projectile.facing == 'left') ? flipHitbox(projectile.hitboxes[projectileFrame][j]['hitbox']) : projectile.hitboxes[projectileFrame][j]['hitbox']);
-			        	for (var o in ((game.started) ? stage.hitboxes : player.previewStage.hitboxes)) {
-			          		var hitbox2 = ((game.started) ? stage.hitboxes[o] : player.previewStage.hitboxes[o]);
+			        	for (var o in ((game.started) ? stage.hitboxes : previewStage.hitboxes)) {
+			          		var hitbox2 = ((game.started) ? stage.hitboxes[o] : previewStage.hitboxes[o]);
 			          		if (checkHit([projectile.x + hitbox1[0]*projectile.width, projectile.y + hitbox1[1]*projectile.height, projectile.x + hitbox1[2]*projectile.width, projectile.y + hitbox1[3]*projectile.height], hitbox2)) {
 			            		for (var i in player.projectiles) {
 									if (player.projectiles[i].id == projectile.id) {
@@ -1037,7 +983,7 @@ setInterval(function() {
 					projectile.y += projectile.velocity[1];
 					projectile.velocity[1] += projectile.weight*0.00075*(60/gameSpeed)*(60/gameSpeed);
 
-					if (checkOffstage(projectile.x, projectile.y, ((game.started) ? game.stage : player.previewStage))) {
+					if (checkOffstage(projectile.x, projectile.y, ((game.started) ? game.stage : previewStage))) {
 						player.projectiles.splice(l, 1);
 					}
 				}
@@ -1090,10 +1036,8 @@ setInterval(function() {
 
 					player.animationFrame = (player.animationFrame + (60/gameSpeed))%(player.fighter.animationTime*player.fighter.frames[player.action]);
 
-					if (game.started && !player.grounded) {
+					if (!player.grounded) {
 						player.velY += (player.fighter.terminalVelocity/13.5)*(60/gameSpeed)*(60/gameSpeed);
-					} else if (!game.started && !player.grounded) {
-						player.stageVelY += (player.fighter.terminalVelocity/13.5)*(60/gameSpeed)*(60/gameSpeed);
 					}
 
 					if (player.velX > 0) {
@@ -1128,13 +1072,9 @@ setInterval(function() {
 					    }
 					    if (player.movement.up) {
 					    	if (!player.upPressed) {
-					      		if (game.started && player.jumps > 0) {
+					      		if (player.jumps > 0) {
 					      			player.grounded = false;
 					      			player.velY = -player.fighter.jumpStrength*(60/gameSpeed);
-					      			player.jumps -= 1;
-					      		} else if (player.jumps > 0 && !game.started) {
-					      			player.grounded = false;
-					      			player.stageVelY = -player.fighter.jumpStrength*(60/gameSpeed);
 					      			player.jumps -= 1;
 					      		}
 					      	}
@@ -1163,10 +1103,8 @@ setInterval(function() {
 							}
 						}
 				    	if (player.movement.down) {
-				    		if (game.started && !player.grounded && player.velY < player.fighter.terminalVelocity*1.7*(60/gameSpeed)) {
+				    		if (!player.grounded && player.velY < player.fighter.terminalVelocity*1.7*(60/gameSpeed)) {
 					      		player.velY += (player.fighter.terminalVelocity/5)*(60/gameSpeed);
-					      	} else if (game.started && !player.grounded && player.stageVelY < player.fighter.terminalVelocity*1.7*(60/gameSpeed)) {
-					      		player.stageVelY += (player.fighter.terminalVelocity/5)*(60/gameSpeed);
 					      	}
 				    	}
 				    } else {
@@ -1175,30 +1113,16 @@ setInterval(function() {
 				    	player.animationFrame = 0;
 				    }
 
-			    	if (player.action != 'stun' && (game.started && player.velY > player.fighter.terminalVelocity*(60/gameSpeed)) || (!game.started && player.stageVelY < player.fighter.terminalVelocity*(60/gameSpeed))) {
+			    	if (player.action != 'stun' && player.velY > player.fighter.terminalVelocity*(60/gameSpeed)) {
 			    		player.velY = Math.max(player.velY - (player.fighter.terminalVelocity/20)*(60/gameSpeed), player.fighter.terminalVelocity*(60/gameSpeed));
 			    	}
 
-			    	if ((game.started && player.velY < 0) || (!game.started && player.stageVelY > 0)) {
+			    	if (player.velY < 0) {
 			    		player.grounded = false;
 			    	}
 
-			    	if (game.started) {
-				    	player.x += player.velX;
-				    	player.y += player.velY;
-				    } else {
-				    	for (var prev in player.previewStage.hitboxes) {
-					    	player.previewStage.hitboxes[prev][1] -= player.stageVelY;
-					    	player.previewStage.hitboxes[prev][3] -= player.stageVelY;
-
-					    	if (player.grounded) {
-					    		player.previewStage.hitboxes[prev][1] = stages[0].hitboxes[prev][1];
-					    		player.previewStage.hitboxes[prev][3] = stages[0].hitboxes[prev][3];
-					    		player.y = player.previewStage.hitboxes[prev][1] - 0.1215;
-					    		player.stageVelY = 0;
-					    	}
-					    }
-				    }
+			    	player.x += player.velX;
+			    	player.y += player.velY;
 
 				    if (frame != player.lastFrame[0] || player.action != player.lastFrame[1]) {
 					    for (var effect in player.fighter.effects[player.action][frame]) {

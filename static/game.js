@@ -9,7 +9,6 @@ document.head.appendChild(imported);
 var socket = io();
 
 var debug = false;
-var numSacrifices = 0;
 var nameLength = 20;
 var gameNameLength = 20;
 var animationTimeLength = 5;
@@ -36,7 +35,7 @@ var fighterJumpStrengthLength = 8;
 var fighterFallSpeedLength = 8;
 var fighterWeightLength = 8;
 var fighterRunSpeedLength = 8;
-var maxPlayers = 7;
+var maxPlayers = 4;
 var pingTime = 2000;
 var gameSpeed = 30;
 var demo = false;
@@ -156,7 +155,6 @@ var selectedSlider = null;
 var actions = ['idle', 'stun', 'nair', 'neutral', 'run', 'airmove', 'forward', 'fair', 'uair', 'bair', 'dair', 'dtilt'];
 
 var player;
-var stage;
 var game;
 var gamez;
 var numPlayer;
@@ -283,7 +281,7 @@ var preGameButtons = [new Button('leaveLobby', function() {return canvas.width/6
   new Button('renameGame', function() {return canvas.width/2 - this.getWidth()/2;}, function() {return canvas.height/10;}, function() {context.font = (canvas.width/106.67).toString() + 'px Arial'; return ((namingGame) ? context.measureText(tempGameName).width + canvas.width/384 : context.measureText(game.name).width + canvas.width/384);}, function() {return canvas.height/43.2;}, 1, function() {if (!namingGame) {tempGameName = ''} namingGame = true;}, function() {return true;}, function() {return 'white';}, function() {return [((tempGameName == '' && !namingGame) ? game.name : tempGameName)];}, 'black', function() {return (canvas.width/106.67).toString() + 'px Arial';}, function() {return null;}, function() {if (game.host == player.id) {return true;} else {context.font = this.getFont(); context.fillStyle = 'black'; context.textAlign = 'center'; context.fillText(this.getText(), this.getX() + this.getWidth()/2, this.getY() + this.getHeight()/10 + parseInt(this.getFont().substring(0, 2)) - (this.getHeight()/6)*(this.getText().length-1)); return false;}}),
   new Button('rename', function() {context.font = 'bold ' + (canvas.width/106.67).toString() + 'px Arial'; var a = context.measureText('Name: ').width; context.font = this.getFont(); return canvas.width/7.5 + a;}, function() {return canvas.height/4.3;}, function() {context.font = (canvas.width/106.67).toString() + 'px Arial'; return ((naming) ? context.measureText(tempName).width + canvas.width/384 : context.measureText(player.name).width + canvas.width/384);}, function() {return canvas.height/43.2;}, 1, function() {if (!naming) {tempName = ''} naming = true;}, function() {return true;}, function() {return 'white';}, function() {context.font = 'bold ' + (canvas.width/106.67).toString() + 'px Arial'; context.font = this.getFont(); return [((tempName == '' && !naming) ? player.name : tempName)];}, 'black', function() {return (canvas.width/106.67).toString() + 'px Arial';}, function() {return null;}, function() {context.font = 'bold ' + (canvas.width/106.67).toString() + 'px Arial'; context.fillStyle = 'black'; context.textAlign = 'center'; context.fillText('Name: ', canvas.width/7, canvas.height/4.035); context.fillStyle = this.textColor; context.font = this.getFont(); return true;})];
 
-var gameButtons = [new Button('lobby', function() {return canvas.width/2 - canvas.width/10;}, function() {return 2.75*canvas.height/4;}, function() {return canvas.width/5;}, function() {return canvas.height/10;}, 3, function() {debug = false; for (var i in cantDoThat) {cantDoThat[i]=0;} for (var i in canDoThat) {canDoThat[i]=0;} game = null; socket.emit('leaveGame');}, function() {return true;}, function() {return 'white';}, function() {return ['Leave Game'];}, 'black', function() {return (canvas.width/60).toString() + 'px Arial';}, function() {return null;}, function() {return (player.lost || player.won);}),
+var gameButtons = [new Button('lobby', function() {return canvas.width/2 - canvas.width/10;}, function() {return 2.75*canvas.height/4;}, function() {return canvas.width/5;}, function() {return canvas.height/10;}, 3, function() {debug = false; game = null; socket.emit('leaveGame');}, function() {return true;}, function() {return 'white';}, function() {return ['Leave Game'];}, 'black', function() {return (canvas.width/60).toString() + 'px Arial';}, function() {return null;}, function() {return (player.lost || player.won);}),
   new Button('back', function() {return canvas.width/60;}, function() {return canvas.height/33.75;}, function() {return canvas.width/10;}, function() {return canvas.height/15;}, 3, function() {debug = false; game = null; socket.emit('leaveGame');}, function() {return true;}, function() {return 'white';}, function() {return ['Back'];}, 'black', function() {return (canvas.width/60).toString() + 'px Arial';}, function() {return null;}, function() {return demo;}),
   new Button('debug', function() {return 59*canvas.width/60 - this.getWidth();}, function() {return canvas.height/33.75;}, function() {return canvas.width/9;}, function() {return canvas.height/15;}, 3, function() {debug = !debug;}, function() {return true;}, function() {return 'white';}, function() {return ['Toggle Debug'];}, 'black', function() {return (canvas.width/60).toString() + 'px Arial';}, function() {return null;}, function() {return demo;})];
 
@@ -296,28 +294,6 @@ var movement = {
   down: false,
   left: false,
   right: false
-}
-
-var cantDoThat = {
-  'uair': 0,
-  'dair': 0,
-  'nair': 0,
-  'dtilt': 0,
-  'bair': 0,
-  'fair': 0,
-  'neutral': 0,
-  'forward': 0
-}
-
-var canDoThat = {
-  'uair': 0,
-  'dair': 0,
-  'nair': 0,
-  'dtilt': 0,
-  'bair': 0,
-  'fair': 0,
-  'neutral': 0,
-  'forward': 0
 }
 
 var canvas = document.getElementById('canvas');
@@ -1028,16 +1004,18 @@ function loadImages() {
   }
 
   imgs['stages'] = {};
+  for (var i in data.stages) {
+    var img = new Image();
+    img.src = data['stages'][i];
+    imgs['stages'][i] = img;
+  }
 }
 
 function render() {
   if (game && game != null) {
-    
-    var hitbox;
-    if (stage) {
-      var bgImg = new Image();
-      bgImg.src = '/randall_stage.png';
-      context.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
+
+    if (game.started) {
+      context.drawImage(imgs['stages'][game.stage.name], 0, 0, canvas.width, canvas.height);
     }
 
     if (player) {
@@ -1136,10 +1114,10 @@ function render() {
 
     if (!game.started) {
       context.fillStyle = 'white';
-      context.fillRect(0, 0, canvas.width/1.85 + canvas.width/3.83, canvas.height);
-      context.fillRect(canvas.width/1.85 + canvas.width/3.83 + canvas.width/19.2, 0, canvas.width - canvas.width/1.85 + canvas.width/3.83 + canvas.width/19.2, canvas.height);
-      context.fillRect(canvas.width/1.85 + canvas.width/4, canvas.height/6 + canvas.height/50 + canvas.height/6.5, canvas.width/19.2 + canvas.width/80, canvas.height - canvas.height/6 + canvas.height/50 + canvas.height/6.5);
-      context.fillRect(canvas.width/1.85 + canvas.width/3.83, 0, canvas.width/19.2, canvas.height/6 + canvas.height/50);
+      context.fillRect(0, 0, canvas.width/3, canvas.height);
+      context.fillRect(canvas.width/3 + canvas.width/1.6, 0, canvas.width - canvas.width/3, canvas.height);
+      context.fillRect(canvas.width/3, canvas.height/6 + 2.5*canvas.height/4, canvas.width/1.6, canvas.height - canvas.height/6 + 2.5*canvas.height/4);
+      context.fillRect(canvas.width/3, 0, canvas.width/1.6, canvas.height/6);
     }
 
     if (player.lost) {
@@ -1253,25 +1231,6 @@ function render() {
       context.fillRect(canvas.width/2 + context.measureText(tempGameName).width/2 + canvas.width/640, canvas.height/10, canvas.width/128, canvas.height/43.2);
     }
 
-    var nope = 0;
-    for (var i in cantDoThat) {
-      nope = Math.max(nope, cantDoThat[i]);
-    }
-    context.strokeStyle = 'rgba(255, 0, 0, ' + (nope/100).toString() + ')';
-    context.lineWidth = 6;
-    context.beginPath();
-    context.moveTo(canvas.width/1.85 + canvas.width/3.83, canvas.height/6 + canvas.height/35);
-    context.lineTo(canvas.width/1.85 + canvas.width/3.83 + canvas.width/19.2, canvas.height/6 + canvas.height/35 + canvas.height/7.2);
-    context.moveTo(canvas.width/1.85 + canvas.width/3.83, canvas.height/6 + canvas.height/35 + canvas.height/7.2);
-    context.lineTo(canvas.width/1.85 + canvas.width/3.83 + canvas.width/19.2, canvas.height/6 + canvas.height/35);
-    context.stroke();
-    context.closePath();
-    for (var i in cantDoThat) {
-      cantDoThat[i] = Math.max(cantDoThat[i]-3, 0);
-    }
-    for (var i in canDoThat) {
-      canDoThat[i] = Math.max(canDoThat[i]-3, 0);
-    }
   } else if ((!game || game == null) && !createFighter) {
     context.fillStyle = 'black';
     context.textAlign = 'center';
@@ -1826,17 +1785,8 @@ socket.on('data', function(getData, getFighters) {
   }
 });
 
-socket.on('cantDoThat', function(move) {
-  cantDoThat[move] = 100;
-});
-
-socket.on('canDoThat', function(move) {
-  canDoThat[move] = 100;
-});
-
 socket.on('state', function(gameObject) {
   player = gameObject.players[socket.id];
-  stage = gameObject.stage;
   game = gameObject;
   gamez = null;
 });
@@ -1844,7 +1794,6 @@ socket.on('state', function(gameObject) {
 socket.on('games', function(games) {
   gamez = games;
   player = null;
-  stage = null;
   game = null;
 
   for (var j=lobbyButtons.length-1; j>=lobbyButtonsLength; j--) {
@@ -1867,7 +1816,7 @@ setInterval(function() {
 
   if (game && game != null && !game.started && preGameButtons.length == preGameButtonsLength) {
     for (var i in fighters) {
-      preGameButtons.push(new Button('fighter' + i, function() {return canvas.width/2.9;}, function() {return canvas.height/5.15 + parseInt(this.id.substring(7, 8))*(this.getHeight() + this.lineWidth*2);}, function() {return canvas.width/19.2;}, function() {return canvas.height/7.2}, 3, function() {socket.emit('changeFighter', parseInt(this.id.substring(7, 8)));}, function() {return true;}, function() {return 'white';}, function() {return [];}, 'black', function() {return (canvas.width/106.67).toString() + 'px Arial';}, function() {
+      preGameButtons.push(new Button('fighter' + i, function() {return canvas.width/2.9;}, function() {return canvas.height/5.15 + parseInt(this.id.substring(7, 8))*(this.getHeight() + this.lineWidth*2);}, function() {return canvas.width/19.2;}, function() {return canvas.height/7.2}, 3, function() {socket.emit('changeFighter', parseInt(this.id.substring(7, 8)));}, function() {return true;}, function() {return 'rgba(235, 235, 235, 1)';}, function() {return [];}, 'black', function() {return (canvas.width/106.67).toString() + 'px Arial';}, function() {
         tempSheet = imgs['fighters'][fighters[this.id.substring(7)].name]['idle'];
         context.drawImage(tempSheet, (Math.floor(lobbyFrame/fighters[this.id.substring(7)].animationTime)%(fighters[this.id.substring(7)].frames['idle']))*(tempSheet.width/fighters[this.id.substring(7)].frames['idle']), 0, tempSheet.width/fighters[this.id.substring(7)].frames['idle'], tempSheet.height/fighters[this.id.substring(7)].sprites, this.getX(), this.getY(), ((fighters[this.id.substring(7)].spriteWidth*canvas.width > this.getWidth() || fighters[this.id.substring(7)].spriteHeight*canvas.height > this.getHeight()) ? this.getWidth() : fighters[this.id.substring(7)].spriteWidth*canvas.width), ((fighters[this.id.substring(7)].spriteWidth*canvas.width > this.getWidth() || fighters[this.id.substring(7)].spriteHeight*canvas.height > this.getHeight()) ? this.getHeight() : fighters[this.id.substring(7)].spriteHeight*canvas.height));
         return null;}, function() {return true;}));
