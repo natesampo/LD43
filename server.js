@@ -1112,11 +1112,15 @@ setInterval(function() {
 					    	}
 							if (player.action == 'idle' && player.grounded) {
 								player.action = 'run';
-								player.animationFrame = 0;
+								if (player.lastFrame[1] != 'run') {
+									player.animationFrame = 0;
+								}
 							}
 							if (player.action == 'idle' && !player.grounded) {
 								player.action = 'airmove';
-								player.animationFrame = 0;
+								if (player.lastFrame[1] != 'airmove') {
+									player.animationFrame = 0;
+								}
 							}
 							if (player.grounded) {
 								player.facing = 'left';
@@ -1144,11 +1148,15 @@ setInterval(function() {
 					    	}
 				      		if (player.action == 'idle' && player.grounded) {
 								player.action = 'run';
-								player.animationFrame = 0;
+								if (player.lastFrame[1] != 'run') {
+									player.animationFrame = 0;
+								}
 							}
 							if (player.action == 'idle' && !player.grounded) {
 								player.action = 'airmove';
-								player.animationFrame = 0;
+								if (player.lastFrame[1] != 'airmove') {
+									player.animationFrame = 0;
+								}
 							}
 							if (player.grounded) {
 								player.facing = 'right';

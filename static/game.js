@@ -150,13 +150,13 @@ var dragging = false;
 var cornerSelected = [null, null];
 var newFighterPlay = false;
 var newFighterAnimationFrame = 0;
+var lobbyFrame = 0;
 var spritesInSheet = 1;
 var selectedSlider = null;
 var actions = ['idle', 'stun', 'nair', 'neutral', 'run', 'airmove', 'forward', 'fair', 'uair', 'bair', 'dair', 'dtilt'];
 
 var player;
 var stage;
-var frame;
 var game;
 var gamez;
 var numPlayer;
@@ -275,27 +275,13 @@ var createFighterButtons = [new Button('back', function() {return canvas.width/6
 var createFighterSliders = [new Slider('width', function() {return newFighterData['spriteWidth'];}, function(percent) {newFighterData['spriteWidth']=percent*(this.max-this.min)+this.min;}, 0.01, 0.1875, function() {return canvas.width/3.2;}, function() {return canvas.height/5.4;}, function() {return canvas.width/10;}, function() {return canvas.height/300;}, function() {return canvas.width/200;}, function() {return canvas.height/100;}, function() {return canvas.width/600;}, function() {return 'black';}, function() {return 'white';}, function() {return true;}),
   new Slider('width', function() {return newFighterData['spriteHeight'];}, function(percent) {newFighterData['spriteHeight']=percent*(this.max-this.min)+this.min;}, 0.01, 0.5, function() {return canvas.width/3.2;}, function() {return canvas.height/4.35;}, function() {return canvas.width/10;}, function() {return canvas.height/300;}, function() {return canvas.width/200;}, function() {return canvas.height/100;}, function() {return canvas.width/600;}, function() {return 'black';}, function() {return 'white';}, function() {return true;})];
 
-var lobbyButtons = [new Button('createGame', function() {return canvas.width/60;}, function() {return canvas.height/33.75;}, function() {return canvas.width/10;}, function() {return canvas.height/15;}, 3, function() {demo = false; socket.emit('createGame', true);}, function() {return true;}, function() {return 'white';}, function() {return ['Create Game'];}, 'black', function() {return (canvas.width/70).toString() + 'px Arial';}, function() {return null;}, function() {return true;}),
+var lobbyButtons = [new Button('createGame', function() {return canvas.width/60;}, function() {return canvas.height/33.75;}, function() {return canvas.width/10;}, function() {return canvas.height/15;}, 3, function() {demo = false; lobbyFrame = 0; socket.emit('createGame', true);}, function() {return true;}, function() {return 'white';}, function() {return ['Create Game'];}, 'black', function() {return (canvas.width/70).toString() + 'px Arial';}, function() {return null;}, function() {return true;}),
   new Button('createFighter', function() {return 59*canvas.width/60 - this.getWidth();}, function() {return canvas.height/33.75;}, function() {return canvas.width/10;}, function() {return canvas.height/15;}, 3, function() {demo = true; fighterSelect = false; createFighter = true;}, function() {return true;}, function() {return 'white';}, function() {return ['Create Fighter'];}, 'black', function() {return (canvas.width/70).toString() + 'px Arial';}, function() {return null;}, function() {return true;})];
 
-var preGameButtons = [new Button('leaveLobby', function() {return canvas.width/60;}, function() {return canvas.height/33.75;}, function() {return canvas.width/10;}, function() {return canvas.height/20;}, 3, function() {fighterSelect = false; socket.emit('leaveGame');}, function() {return true;}, function() {return 'white';}, function() {return ['Leave Lobby'];}, 'black', function() {return (canvas.width/80).toString() + 'px Arial';}, function() {return null;}, function() {return true;}),
-  new Button('startGame', function() {return canvas.width/2 - canvas.width/10;}, function() {return 3.3*canvas.height/4;}, function() {return canvas.width/5;}, function() {return canvas.height/10;}, 6, function() {socket.emit('startGame');}, function() {return true;}, function() {return 'green';}, function() {return ['Fight!'];}, 'black', function() {return (canvas.width/60).toString() + 'px Arial';}, function() {return null;}, function() {return true;}),
+var preGameButtons = [new Button('leaveLobby', function() {return canvas.width/60;}, function() {return canvas.height/33.75;}, function() {return canvas.width/10;}, function() {return canvas.height/20;}, 3, function() {fighterSelect = false; lobbyFrame = 0; socket.emit('leaveGame');}, function() {return true;}, function() {return 'white';}, function() {return ['Leave Lobby'];}, 'black', function() {return (canvas.width/80).toString() + 'px Arial';}, function() {return null;}, function() {return true;}),
+  new Button('startGame', function() {return canvas.width/2 - canvas.width/10;}, function() {return 3.3*canvas.height/4;}, function() {return canvas.width/5;}, function() {return canvas.height/10;}, 6, function() {lobbyFrame = 0; socket.emit('startGame');}, function() {return true;}, function() {return 'green';}, function() {return ['Fight!'];}, 'black', function() {return (canvas.width/60).toString() + 'px Arial';}, function() {return null;}, function() {return true;}),
   new Button('renameGame', function() {return canvas.width/2 - this.getWidth()/2;}, function() {return canvas.height/10;}, function() {context.font = (canvas.width/106.67).toString() + 'px Arial'; return ((namingGame) ? context.measureText(tempGameName).width + canvas.width/384 : context.measureText(game.name).width + canvas.width/384);}, function() {return canvas.height/43.2;}, 1, function() {if (!namingGame) {tempGameName = ''} namingGame = true;}, function() {return true;}, function() {return 'white';}, function() {return [((tempGameName == '' && !namingGame) ? game.name : tempGameName)];}, 'black', function() {return (canvas.width/106.67).toString() + 'px Arial';}, function() {return null;}, function() {if (game.host == player.id) {return true;} else {context.font = this.getFont(); context.fillStyle = 'black'; context.textAlign = 'center'; context.fillText(this.getText(), this.getX() + this.getWidth()/2, this.getY() + this.getHeight()/10 + parseInt(this.getFont().substring(0, 2)) - (this.getHeight()/6)*(this.getText().length-1)); return false;}}),
-  new Button('rename', function() {context.font = 'bold ' + (canvas.width/106.67).toString() + 'px Arial'; var a = context.measureText('Name: ').width; context.font = this.getFont(); return canvas.width/1.85 + canvas.width/75 + a;}, function() {return canvas.height/6 + canvas.height/40;}, function() {context.font = (canvas.width/106.67).toString() + 'px Arial'; return ((naming) ? context.measureText(tempName).width + canvas.width/384 : context.measureText(player.name).width + canvas.width/384);}, function() {return canvas.height/43.2;}, 1, function() {if (!naming) {tempName = ''} naming = true;}, function() {return true;}, function() {return 'white';}, function() {context.font = 'bold ' + (canvas.width/106.67).toString() + 'px Arial'; context.font = this.getFont(); return [((tempName == '' && !naming) ? player.name : tempName)];}, 'black', function() {return (canvas.width/106.67).toString() + 'px Arial';}, function() {return null;}, function() {context.font = 'bold ' + (canvas.width/106.67).toString() + 'px Arial'; context.fillStyle = 'black'; context.textAlign = 'center'; context.fillText('Name: ', canvas.width/1.85 + canvas.width/36, canvas.height/6 + canvas.height/25); context.fillStyle = this.textColor; context.font = this.getFont(); return true;}),
-  new Button('uair', function() {return canvas.width/1.85 + canvas.width/12;}, function() {return canvas.height/6 + canvas.height/6.5;}, function() {return canvas.width/19.2;}, function() {return canvas.height/10.8;}, 3, function() {socket.emit('sacrifice', 'uair');}, function() {return true;}, function() {return ((cantDoThat[this.id] > canDoThat[this.id]) ? 'rgba(255, 0, 0, ' + (cantDoThat[this.id]/100).toString() + ')' : 'rgba(0, 255, 0, ' + (canDoThat[this.id]/100).toString() + ')');}, function() {return ['Up Air'];}, 'black', function() {return (canvas.width/80).toString() + 'px Arial';}, function() {return null;}, function() {return true;}),
-  new Button('dair', function() {return canvas.width/1.85 + canvas.width/12;}, function() {return canvas.height/6 + canvas.height/6.5 + canvas.height/10.8;}, function() {return canvas.width/19.2;}, function() {return canvas.height/10.8;}, 3, function() {socket.emit('sacrifice', 'dair');}, function() {return true;}, function() {return ((cantDoThat[this.id] > canDoThat[this.id]) ? 'rgba(255, 0, 0, ' + (cantDoThat[this.id]/100).toString() + ')' : 'rgba(0, 255, 0, ' + (canDoThat[this.id]/100).toString() + ')');}, function() {return ['Down', 'Air'];}, 'black', function() {return (canvas.width/80).toString() + 'px Arial';}, function() {return null;}, function() {return true;}),
-  new Button('nair', function() {return canvas.width/1.85 + canvas.width/12;}, function() {return canvas.height/6 + canvas.height/6.5 + canvas.height/4.2;}, function() {return canvas.width/19.2;}, function() {return canvas.height/10.8;}, 3, function() {socket.emit('sacrifice', 'nair');}, function() {return true;}, function() {return ((cantDoThat[this.id] > canDoThat[this.id]) ? 'rgba(255, 0, 0, ' + (cantDoThat[this.id]/100).toString() + ')' : 'rgba(0, 255, 0, ' + (canDoThat[this.id]/100).toString() + ')');}, function() {return ['Up Tilt'];}, 'black', function() {return (canvas.width/80).toString() + 'px Arial';}, function() {return null;}, function() {return true;}),
-  new Button('dtilt', function() {return canvas.width/1.85 + canvas.width/12;}, function() {return canvas.height/6 + canvas.height/6.5 + canvas.height/4.2 + canvas.height/10.8;}, function() {return canvas.width/19.2;}, function() {return canvas.height/10.8;}, 3, function() {socket.emit('sacrifice', 'dtilt');}, function() {return true;}, function() {return ((cantDoThat[this.id] > canDoThat[this.id]) ? 'rgba(255, 0, 0, ' + (cantDoThat[this.id]/100).toString() + ')' : 'rgba(0, 255, 0, ' + (canDoThat[this.id]/100).toString() + ')');}, function() {return ['Down', 'Tilt'];}, 'black', function() {return (canvas.width/80).toString() + 'px Arial';}, function() {return null;}, function() {return true;}),
-  new Button('bair', function() {return canvas.width/1.85 + canvas.width/12 - canvas.width/19.2;}, function() {return canvas.height/6 + canvas.height/6.5 + canvas.height/10.8;}, function() {return canvas.width/19.2;}, function() {return canvas.height/10.8;}, 3, function() {socket.emit('sacrifice', 'bair');}, function() {return true;}, function() {return ((cantDoThat[this.id] > canDoThat[this.id]) ? 'rgba(255, 0, 0, ' + (cantDoThat[this.id]/100).toString() + ')' : 'rgba(0, 255, 0, ' + (canDoThat[this.id]/100).toString() + ')');}, function() {return ['Back', 'Air'];}, 'black', function() {return (canvas.width/80).toString() + 'px Arial';}, function() {return null;}, function() {return true;}),
-  new Button('fair', function() {return canvas.width/1.85 + canvas.width/12 + canvas.width/19.2;}, function() {return canvas.height/6 + canvas.height/6.5 + canvas.height/10.8;}, function() {return canvas.width/19.2;}, function() {return canvas.height/10.8;}, 3, function() {socket.emit('sacrifice', 'fair');}, function() {return true;}, function() {return ((cantDoThat[this.id] > canDoThat[this.id]) ? 'rgba(255, 0, 0, ' + (cantDoThat[this.id]/100).toString() + ')' : 'rgba(0, 255, 0, ' + (canDoThat[this.id]/100).toString() + ')');}, function() {return ['Forward', 'Air'];}, 'black', function() {return (canvas.width/80).toString() + 'px Arial';}, function() {return null;}, function() {return true;}),
-  new Button('neutral', function() {return canvas.width/1.85 + canvas.width/12 - canvas.width/19.2;}, function() {return canvas.height/6 + canvas.height/6.5 + canvas.height/4.2;}, function() {return canvas.width/19.2;}, function() {return canvas.height/10.8;}, 3, function() {socket.emit('sacrifice', 'neutral');}, function() {return true;}, function() {return ((cantDoThat[this.id] > canDoThat[this.id]) ? 'rgba(255, 0, 0, ' + (cantDoThat[this.id]/100).toString() + ')' : 'rgba(0, 255, 0, ' + (canDoThat[this.id]/100).toString() + ')');}, function() {return ['Neutral'];}, 'black', function() {return (canvas.width/80).toString() + 'px Arial';}, function() {return null;}, function() {return true;}),
-  new Button('forward', function() {return canvas.width/1.85 + canvas.width/12 + canvas.width/19.2;}, function() {return canvas.height/6 + canvas.height/6.5 + canvas.height/4.2;}, function() {return canvas.width/19.2;}, function() {return canvas.height/10.8;}, 3, function() {socket.emit('sacrifice', 'forward');}, function() {return true;}, function() {return ((cantDoThat[this.id] > canDoThat[this.id]) ? 'rgba(255, 0, 0, ' + (cantDoThat[this.id]/100).toString() + ')' : 'rgba(0, 255, 0, ' + (canDoThat[this.id]/100).toString() + ')');}, function() {return ['Dash', 'Attack'];}, 'black', function() {return (canvas.width/80).toString() + 'px Arial';}, function() {return null;}, function() {return true;}),
-  new Button('stock1', function() {return canvas.width/1.85 + canvas.width/4;}, function() {return canvas.height/6 + canvas.height/4.8;}, function() {return canvas.width/25.6;}, function() {return canvas.height/14.4;}, 3, function() {socket.emit('sacrifice', 'stock1');}, function() {return true;}, function() {return 'white';}, function() {return ['Stock'];}, 'black', function() {return (canvas.width/80).toString() + 'px Arial';}, function() {return null;}, function() {return true;}),
-  new Button('stock2', function() {return canvas.width/1.85 + canvas.width/4;}, function() {return canvas.height/6 + canvas.height/4.8 + canvas.height/14.4;}, function() {return canvas.width/25.6;}, function() {return canvas.height/14.4;}, 3, function() {socket.emit('sacrifice', 'stock2');}, function() {return true;}, function() {return 'white';}, function() {return ['Stock'];}, 'black', function() {return (canvas.width/80).toString() + 'px Arial';}, function() {return null;}, function() {return true;}),
-  new Button('stock3', function() {return canvas.width/1.85 + canvas.width/4;}, function() {return canvas.height/6 + canvas.height/4.8 + canvas.height/7.2;}, function() {return canvas.width/25.6;}, function() {return canvas.height/14.4;}, 3, function() {socket.emit('sacrifice', 'stock3');}, function() {return true;}, function() {return 'white';}, function() {return ['Stock'];}, 'black', function() {return (canvas.width/80).toString() + 'px Arial';}, function() {return null;}, function() {return true;}),
-  new Button('stock4', function() {return canvas.width/1.85 + canvas.width/4;}, function() {return canvas.height/6 + canvas.height/4.8 + canvas.height/4.8;}, function() {return canvas.width/25.6;}, function() {return canvas.height/14.4;}, 3, function() {socket.emit('sacrifice', 'stock4');}, function() {return true;}, function() {return 'white';}, function() {return ['Stock'];}, 'black', function() {return (canvas.width/80).toString() + 'px Arial';}, function() {return null;}, function() {return true;}),
-  new Button('stock5', function() {return canvas.width/1.85 + canvas.width/4;}, function() {return canvas.height/6 + canvas.height/4.8 + canvas.height/3.6;}, function() {return canvas.width/25.6;}, function() {return canvas.height/14.4;}, 3, function() {socket.emit('sacrifice', 'stock5');}, function() {return true;}, function() {return 'white';}, function() {return ['Stock'];}, 'black', function() {return (canvas.width/80).toString() + 'px Arial';}, function() {return null;}, function() {return true;}),
-  new Button('fighterSelect', function() {return canvas.width/1.85 + canvas.width/3.83;}, function() {return canvas.height/6 + canvas.height/50;}, function() {return canvas.width/19.2;}, function() {return canvas.height/6.5}, 3, function() {fighterSelect = !fighterSelect;}, function() {return true;}, function() {return 'rgba(0, 0, 0, 0)';}, function() {return [];}, 'black', function() {return (canvas.width/80).toString() + 'px Arial';}, function() {null;}, function() {return true;})];
+  new Button('rename', function() {context.font = 'bold ' + (canvas.width/106.67).toString() + 'px Arial'; var a = context.measureText('Name: ').width; context.font = this.getFont(); return canvas.width/7.5 + a;}, function() {return canvas.height/4.3;}, function() {context.font = (canvas.width/106.67).toString() + 'px Arial'; return ((naming) ? context.measureText(tempName).width + canvas.width/384 : context.measureText(player.name).width + canvas.width/384);}, function() {return canvas.height/43.2;}, 1, function() {if (!naming) {tempName = ''} naming = true;}, function() {return true;}, function() {return 'white';}, function() {context.font = 'bold ' + (canvas.width/106.67).toString() + 'px Arial'; context.font = this.getFont(); return [((tempName == '' && !naming) ? player.name : tempName)];}, 'black', function() {return (canvas.width/106.67).toString() + 'px Arial';}, function() {return null;}, function() {context.font = 'bold ' + (canvas.width/106.67).toString() + 'px Arial'; context.fillStyle = 'black'; context.textAlign = 'center'; context.fillText('Name: ', canvas.width/7, canvas.height/4.035); context.fillStyle = this.textColor; context.font = this.getFont(); return true;})];
 
 var gameButtons = [new Button('lobby', function() {return canvas.width/2 - canvas.width/10;}, function() {return 2.75*canvas.height/4;}, function() {return canvas.width/5;}, function() {return canvas.height/10;}, 3, function() {debug = false; for (var i in cantDoThat) {cantDoThat[i]=0;} for (var i in canDoThat) {canDoThat[i]=0;} game = null; socket.emit('leaveGame');}, function() {return true;}, function() {return 'white';}, function() {return ['Leave Game'];}, 'black', function() {return (canvas.width/60).toString() + 'px Arial';}, function() {return null;}, function() {return (player.lost || player.won);}),
   new Button('back', function() {return canvas.width/60;}, function() {return canvas.height/33.75;}, function() {return canvas.width/10;}, function() {return canvas.height/15;}, 3, function() {debug = false; game = null; socket.emit('leaveGame');}, function() {return true;}, function() {return 'white';}, function() {return ['Back'];}, 'black', function() {return (canvas.width/60).toString() + 'px Arial';}, function() {return null;}, function() {return demo;}),
@@ -1040,6 +1026,8 @@ function loadImages() {
     img.src = data['projectiles'][i];
     imgs['projectiles'][i] = img;
   }
+
+  imgs['stages'] = {};
 }
 
 function render() {
@@ -1048,12 +1036,8 @@ function render() {
     var hitbox;
     if (stage) {
       var bgImg = new Image();
-      bgImg.src = '/fd_background.png';
+      bgImg.src = '/randall_stage.png';
       context.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
-
-      var stageImg = new Image();
-      stageImg.src = '/fd.png';
-      context.drawImage(stageImg, 0.5*canvas.width - (0.7*canvas.width)/2, canvas.height*0.75 - 0.236*canvas.height, 0.7*canvas.width, 0.3467*canvas.height);
     }
 
     if (player) {
@@ -1156,11 +1140,6 @@ function render() {
       context.fillRect(canvas.width/1.85 + canvas.width/3.83 + canvas.width/19.2, 0, canvas.width - canvas.width/1.85 + canvas.width/3.83 + canvas.width/19.2, canvas.height);
       context.fillRect(canvas.width/1.85 + canvas.width/4, canvas.height/6 + canvas.height/50 + canvas.height/6.5, canvas.width/19.2 + canvas.width/80, canvas.height - canvas.height/6 + canvas.height/50 + canvas.height/6.5);
       context.fillRect(canvas.width/1.85 + canvas.width/3.83, 0, canvas.width/19.2, canvas.height/6 + canvas.height/50);
-
-      context.fillStyle = 'black';
-      context.textAlign = 'center';
-      context.font = (canvas.width/160).toString() + 'px Arial';
-      context.fillText('Try Me! (WASD + Arrow Keys)', canvas.width/1.85 + canvas.width/3.83 + canvas.width/38.4, canvas.height/6 + canvas.height/50 + canvas.height/5.87);
     }
 
     if (player.lost) {
@@ -1211,23 +1190,19 @@ function render() {
 
     context.textAlign = 'left';
     context.font = (canvas.width/70).toString() + 'px Arial';
-    context.fillText('Players:', canvas.width/4, canvas.height/3.3);
+    context.fillText('Players:', canvas.width/7, canvas.height/3.3);
 
     context.font = (canvas.width/106.67).toString() + 'px Arial';
     var i = 0;
     for (var j in game.players) {
       context.textAlign = 'left';
-      context.fillText(game.players[j].name, canvas.width/4, canvas.height/3.3 + canvas.height/38 + (canvas.height/50)*i);
+      context.fillText(game.players[j].name, canvas.width/6, canvas.height/3.3 + canvas.height/38 + (canvas.height/50)*i);
 
       context.textAlign = 'right';
-      if (game.players[j].sacrifices.length < numSacrifices) {
-        context.fillText('Sacrifices Needed: ' + (numSacrifices - game.players[j].sacrifices.length).toString(), canvas.width/4 - canvas.width/80 - canvas.width/75, canvas.height/3.3 + canvas.height/38 + (canvas.height/50)*i);
-      } else {
-        context.fillText('Ready!', canvas.width/4 - canvas.width/80 - canvas.width/75, canvas.height/3.3 + canvas.height/38 + (canvas.height/50)*i);
-      }
+      context.fillText('Ready!', canvas.width/6 - canvas.width/80 - canvas.width/75, canvas.height/3.3 + canvas.height/38 + (canvas.height/50)*i);
 
       if (game.host == game.players[j].id) {
-        context.drawImage(imgs['menu']['host'], canvas.width/4 - canvas.width/80 - canvas.width/192, canvas.height/3.3 + canvas.height/35 + (canvas.height/50)*i - canvas.height/45, canvas.width/80, canvas.height/45);
+        context.drawImage(imgs['menu']['host'], canvas.width/6 - canvas.width/80 - canvas.width/192, canvas.height/3.3 + canvas.height/35 + (canvas.height/50)*i - canvas.height/45, canvas.width/80, canvas.height/45);
       }
 
       i++;
@@ -1235,21 +1210,9 @@ function render() {
 
     context.lineWidth = 6;
     context.beginPath();
-    context.rect(canvas.width/1.85, canvas.height/6, canvas.width/3, 2.5*canvas.height/4);
+    context.rect(canvas.width/3, canvas.height/6, canvas.width/1.6, 2.5*canvas.height/4);
     context.stroke();
     context.closePath();
-
-    context.textAlign = 'center';
-    context.font = (canvas.width/80).toString() + 'px Arial';
-    context.fillText('Sacrifices Needed: ' + (numSacrifices - player.sacrifices.length).toString(), canvas.width/1.85 + canvas.width/6, canvas.height/6 + canvas.height/10);
-
-    context.font = (canvas.width/140).toString() + 'px Arial';
-    context.fillText('Click on moves or stocks (lives) to sacrifice them. You will be unable to use them in the match.', canvas.width/1.85 + canvas.width/6, canvas.height/6 - canvas.height/108);
-    context.fillText('Once everyone has completed their sacrifices, the game can begin', canvas.width/2, canvas.height/1.05);
-
-    context.font = (canvas.width/100).toString() + 'px Arial';
-    context.fillText('Aerial attacks', canvas.width/1.85 + canvas.width/24, canvas.height/6 + canvas.height/4.9);
-    context.fillText('Ground attacks', canvas.width/1.85 + canvas.width/24, canvas.height/6 + canvas.height/1.85);
 
     for (var i in preGameButtons) {
       var button = preGameButtons[i];
@@ -1270,18 +1233,6 @@ function render() {
           context.fillText(button.getText()[i], button.getX() + button.getWidth()/2, button.getY() + button.getHeight()/2 + button.getHeight()/10 + i*parseInt(button.getFont().substring(0, 2)) - (button.getHeight()/6)*(button.getText().length-1));
         }
 
-        if (player.sacrifices.includes(button.id)) {
-          context.strokeStyle = 'red';
-          context.lineWidth = 6;
-          context.beginPath();
-          context.moveTo(button.getX(), button.getY());
-          context.lineTo(button.getX() + button.getWidth(), button.getY() + button.getHeight());
-          context.moveTo(button.getX(), button.getY() + button.getHeight());
-          context.lineTo(button.getX() + button.getWidth(), button.getY());
-          context.stroke();
-          context.closePath();
-        }
-
         if (button.getImage() != null) {
           context.drawImage(button.getImage(), button.getX(), button.getY(), button.getWidth(), button.getHeight());
         }
@@ -1293,7 +1244,7 @@ function render() {
       var tempNameWidth = context.measureText(tempName).width;
       context.font = 'bold ' + (canvas.width/106.67).toString() + 'px Arial';
       context.fillStyle = 'black';
-      context.fillRect(canvas.width/1.85 + canvas.width/75 + tempNameWidth + canvas.width/384 + context.measureText('Name: ').width, canvas.height/6 + canvas.height/40, canvas.width/128, canvas.height/43.2);
+      context.fillRect(canvas.width/7.5 + tempNameWidth + canvas.width/384 + context.measureText('Name: ').width, canvas.height/4.3, canvas.width/128, canvas.height/43.2);
     }
 
     if (namingGame) {
@@ -1914,21 +1865,19 @@ setInterval(function() {
   context.imageSmoothingEnabled = false;
   //context.clearRect(0, 0, canvas.width, canvas.height);
 
-  if (player) {
-    frame = Math.floor(player.animationFrame/player.fighter.animationTime).toString();
-  }
-
   if (game && game != null && !game.started && preGameButtons.length == preGameButtonsLength) {
     for (var i in fighters) {
-      preGameButtons.push(new Button('fighter' + i, function() {return canvas.width/1.85 + canvas.width/3.83 + canvas.width/19.2;}, function() {return canvas.height/6 + canvas.height/35 + parseInt(this.id.substring(7, 8))*this.getHeight();}, function() {return canvas.width/19.2;}, function() {return canvas.height/7.2}, 3, function() {fighterSelect = false; socket.emit('changeFighter', parseInt(this.id.substring(7, 8)));}, function() {return fighterSelect;}, function() {return 'white';}, function() {return [];}, 'black', function() {return (canvas.width/106.67).toString() + 'px Arial';}, function() {
+      preGameButtons.push(new Button('fighter' + i, function() {return canvas.width/2.9;}, function() {return canvas.height/5.15 + parseInt(this.id.substring(7, 8))*(this.getHeight() + this.lineWidth*2);}, function() {return canvas.width/19.2;}, function() {return canvas.height/7.2}, 3, function() {socket.emit('changeFighter', parseInt(this.id.substring(7, 8)));}, function() {return true;}, function() {return 'white';}, function() {return [];}, 'black', function() {return (canvas.width/106.67).toString() + 'px Arial';}, function() {
         tempSheet = imgs['fighters'][fighters[this.id.substring(7)].name]['idle'];
-        context.drawImage(tempSheet, frame*(tempSheet.width/fighters[this.id.substring(7)].frames['idle']), 0, tempSheet.width/fighters[this.id.substring(7)].frames['idle'], tempSheet.height/fighters[this.id.substring(7)].sprites, this.getX(), this.getY(), ((fighters[this.id.substring(7)].spriteWidth*canvas.width > this.getWidth() || fighters[this.id.substring(7)].spriteHeight*canvas.height > this.getHeight()) ? this.getWidth() : fighters[this.id.substring(7)].spriteWidth*canvas.width), ((fighters[this.id.substring(7)].spriteWidth*canvas.width > this.getWidth() || fighters[this.id.substring(7)].spriteHeight*canvas.height > this.getHeight()) ? this.getHeight() : fighters[this.id.substring(7)].spriteHeight*canvas.height));
-        return null;}, function() {return fighterSelect;}));
+        context.drawImage(tempSheet, (Math.floor(lobbyFrame/fighters[this.id.substring(7)].animationTime)%(fighters[this.id.substring(7)].frames['idle']))*(tempSheet.width/fighters[this.id.substring(7)].frames['idle']), 0, tempSheet.width/fighters[this.id.substring(7)].frames['idle'], tempSheet.height/fighters[this.id.substring(7)].sprites, this.getX(), this.getY(), ((fighters[this.id.substring(7)].spriteWidth*canvas.width > this.getWidth() || fighters[this.id.substring(7)].spriteHeight*canvas.height > this.getHeight()) ? this.getWidth() : fighters[this.id.substring(7)].spriteWidth*canvas.width), ((fighters[this.id.substring(7)].spriteWidth*canvas.width > this.getWidth() || fighters[this.id.substring(7)].spriteHeight*canvas.height > this.getHeight()) ? this.getHeight() : fighters[this.id.substring(7)].spriteHeight*canvas.height));
+        return null;}, function() {return true;}));
     }
   }
 
 
   if (game && game != null && !game.started) {
+    lobbyFrame += 1;
+
     for (var i=preGameButtons.length-1; i>preGameButtonsLength+fighters.length-1; i--) {
       preGameButtons.splice(i, 1);
     }
