@@ -438,6 +438,15 @@ io.on('connection', function(socket) {
 			console.log(e);
 		}
 	});
+	socket.on('changeSprite', function(newSprite) {
+		try {
+			var player = games[users[socket.id].inGame].players[socket.id];
+			player.sprite = newSprite;
+		}
+		catch (e) {
+			console.log(e);
+		}
+	});
 	socket.on('changeStage', function(newStage) {
 		try {
 			var game = games[users[socket.id].inGame];

@@ -1819,14 +1819,18 @@ setInterval(function() {
 
   if (game && game != null && !game.started && preGameButtons.length == preGameButtonsLength) {
     for (var i in fighters) {
-      preGameButtons.push(new Button('fighter' + i, function() {return canvas.width/2.9;}, function() {return canvas.height/5.15 + parseInt(this.id.substring(7, 8))*(this.getHeight() + this.lineWidth*2);}, function() {return canvas.width/19.2;}, function() {return canvas.height/7.2}, 3, function() {socket.emit('changeFighter', parseInt(this.id.substring(7, 8)));}, function() {return true;}, function() {return 'rgba(235, 235, 235, 1)';}, function() {return [];}, 'black', function() {return (canvas.width/106.67).toString() + 'px Arial';}, function() {
+      preGameButtons.push(new Button('fighter' + i, function() {return canvas.width/2.94;}, function() {return canvas.height/5.35 + parseInt(this.id.substring(7, 8))*(this.getHeight() + this.lineWidth*3.5);}, function() {return canvas.width/19.2;}, function() {return canvas.height/7.2}, 3, function() {
+        player.fighter=fighters[this.id.substring(7)]; socket.emit('changeFighter', parseInt(this.id.substring(7))); for (var i=preGameButtons.length-1; i>=0; i--) {var tempButton = preGameButtons[i]; if (tempButton.id.substring(0, 6) == 'sprite') {if (parseInt(tempButton.id.substring(6)) > player.fighter.sprites-1) {preGameButtons.splice(i, 1)} else if (parseInt(tempButton.id.substring(6)) < player.fighter.sprites-1) {for (j=0; j<player.fighter.sprites-1-parseInt(tempButton.id.substring(6)); j++) {
+        preGameButtons.push(new Button('sprite' + parseInt(tempButton.id.substring(6))+1, function() {return canvas.width/1.5 + (this.getWidth() + this.lineWidth*4)*(parseInt(tempButton.id.substring(6))+1);}, function() {return canvas.height/1.5;}, function() {return canvas.width/10;}, function() {return canvas.height/8}, 3, function() {socket.emit('changeSprite', parseInt(this.id.substring(6)));}, function() {return true;}, function() {return 'white';}, function() {return [];}, 'black', function() {return (canvas.width/106.67).toString() + 'px Arial';}, function() {context.drawImage(imgs['stages'][this.id], this.getX(), this.getY(), this.getWidth(), this.getHeight()); if(game && game.stage && game.stage.name == this.id) {context.lineWidth = canvas.width*0.003125; context.strokeStyle = 'red'; context.strokeRect(this.getX(), this.getY(), this.getWidth(), this.getHeight());} return null;}, function() {return true;}));
+        }} else {break;}}}},
+        function() {return true;}, function() {return 'rgba(235, 235, 235, 1)';}, function() {return [];}, 'black', function() {return (canvas.width/106.67).toString() + 'px Arial';}, function() {
         tempSheet = imgs['fighters'][fighters[this.id.substring(7)].name]['idle'];
         context.drawImage(tempSheet, (Math.floor(lobbyFrame/fighters[this.id.substring(7)].animationTime)%(fighters[this.id.substring(7)].frames['idle']))*(tempSheet.width/fighters[this.id.substring(7)].frames['idle']), 0, tempSheet.width/fighters[this.id.substring(7)].frames['idle'], tempSheet.height/fighters[this.id.substring(7)].sprites, this.getX(), this.getY(), ((fighters[this.id.substring(7)].spriteWidth*canvas.width > this.getWidth() || fighters[this.id.substring(7)].spriteHeight*canvas.height > this.getHeight()) ? this.getWidth() : fighters[this.id.substring(7)].spriteWidth*canvas.width), ((fighters[this.id.substring(7)].spriteWidth*canvas.width > this.getWidth() || fighters[this.id.substring(7)].spriteHeight*canvas.height > this.getHeight()) ? this.getHeight() : fighters[this.id.substring(7)].spriteHeight*canvas.height));
-        return null;}, function() {return true;}));
+        if(player && player.fighter && player.fighter.name == fighters[this.id.substring(7)].name) {context.lineWidth = canvas.width*0.003125; context.strokeStyle = 'red'; context.strokeRect(this.getX(), this.getY(), this.getWidth(), this.getHeight());} return null;}, function() {return true;}));
     }
 
     for (let i=0; i<Object.keys(imgs['stages']).length; i++) {
-      preGameButtons.push(new Button(Object.keys(imgs['stages'])[i], function() {return canvas.width/19 + (this.getWidth() + this.lineWidth*10)*i;}, function() {return canvas.height/2;}, function() {return canvas.width/10;}, function() {return canvas.height/8}, 3, function() {socket.emit('changeStage', this.id);}, function() {return true;}, function() {return 'white';}, function() {return [];}, 'black', function() {return (canvas.width/106.67).toString() + 'px Arial';}, function() {context.drawImage(imgs['stages'][this.id], this.getX(), this.getY(), this.getWidth(), this.getHeight()); if(game && game.stage && game.stage.name == this.id) {context.lineWidth = 6; context.strokeStyle = 'red'; context.strokeRect(this.getX(), this.getY(), this.getWidth(), this.getHeight());} return null;}, function() {return true;}));
+      preGameButtons.push(new Button(Object.keys(imgs['stages'])[i], function() {return canvas.width/19 + (this.getWidth() + this.lineWidth*10)*i;}, function() {return canvas.height/2;}, function() {return canvas.width/10;}, function() {return canvas.height/8}, 3, function() {socket.emit('changeStage', this.id);}, function() {return true;}, function() {return 'white';}, function() {return [];}, 'black', function() {return (canvas.width/106.67).toString() + 'px Arial';}, function() {context.drawImage(imgs['stages'][this.id], this.getX(), this.getY(), this.getWidth(), this.getHeight()); if(game && game.stage && game.stage.name == this.id) {context.lineWidth = canvas.width*0.003125; context.strokeStyle = 'red'; context.strokeRect(this.getX(), this.getY(), this.getWidth(), this.getHeight());} return null;}, function() {return true;}));
     }
   }
 
@@ -1834,14 +1838,40 @@ setInterval(function() {
   if (game && game != null && !game.started) {
     lobbyFrame += 1;
 
-    for (var i=preGameButtons.length-1; i>preGameButtonsLength+fighters.length+Object.keys(imgs['stages']).length-1; i--) {
-      preGameButtons.splice(i, 1);
+    for (var i=preGameButtons.length-1; i>=0; i--) {
+      var button = preGameButtons[i];
+      if (button.id.startsWith('kick_player ')) {
+        var found = false;
+
+        for (var j in game.players) {
+          var tempPlayer = game.players[j];
+          if (tempPlayer.id == button.id.substring(12)) {
+            found = true;
+            break;
+          }
+        }
+
+        if (!found) {
+          preGameButtons.splice(i, 1);
+        }
+      }
     }
 
     var a = 1;
     for (var i in game.players) {
       if (game.players[i].id != game.host) {
-        preGameButtons.push(new Button(game.players[i].id, function() {return canvas.width/4 - canvas.width/80 - canvas.width/192;}, function() {return canvas.height/3.3 + canvas.height/35 + (canvas.height/50)*this.textColor - canvas.height/25;}, function() {return canvas.width/80;}, function() {return canvas.height/45}, 0.01, function() {socket.emit('kickPlayer', this.id);}, function() {return true;}, function() {return 'rgba(255, 255, 255, 0)';}, function() {return [];}, a.toString(), function() {return '18px Arial';}, function() {return '/static/kick.png';}, function() {return (game.host == player.id);}));
+        var found = false;
+
+        for (var j in preGameButtons) {
+          if (preGameButtons[j].id.substring(12) == game.players[i].id) {
+            found = true;
+            break;
+          }
+        }
+
+        if (!found) {
+          preGameButtons.push(new Button('kick_player ' + game.players[i].id, function() {return canvas.width/4 - canvas.width/80 - canvas.width/192;}, function() {return canvas.height/3.3 + canvas.height/35 + (canvas.height/50)*this.textColor - canvas.height/25;}, function() {return canvas.width/80;}, function() {return canvas.height/45}, 0.01, function() {socket.emit('kickPlayer', this.id);}, function() {return true;}, function() {return 'rgba(255, 255, 255, 0)';}, function() {return [];}, a.toString(), function() {return '18px Arial';}, function() {return imgs['menu']['kick'];}, function() {return (game.host == player.id);}));
+        }
       }
 
       a++;
