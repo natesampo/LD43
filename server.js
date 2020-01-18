@@ -62,7 +62,7 @@ class Stage {
 	}
 }
 
-var previewStage = new Stage('preview', [[0.4, 0.5, 0.55, 0.57]], [[0.45, 0.4]], [0.2, 0.1, 1, 0.85]);
+var previewStage = new Stage('preview', [[0.4, 0.7, 0.9, 0.77]], [[0.45, 0.5]], [0.2, 0, 1, 0.85]);
 
 class Projectile {
 	constructor(id, name, facing, owner, x, y, width, height, velocity, weight, animationTime, hitsLeft, frames, hitboxes, attacks) {
@@ -428,6 +428,11 @@ io.on('connection', function(socket) {
 			var player = games[users[socket.id].inGame].players[socket.id];
 			player.fighter = games[users[socket.id].inGame].fighters[newFighter];
 			player.sprite = 0;
+			player.x = previewStage.spawns[0][0];
+		    player.y = previewStage.spawns[0][1];
+		    player.velX = 0;
+		    player.velY = 0;
+		    player.jumps = 0;
 		}
 		catch (e) {
 			console.log(e);
@@ -909,55 +914,53 @@ setInterval(function() {
 			      	}
 			    }
 
-			    if (game.started) {
-			      	for (var a in player.projectiles) {
-			        	var projectile = player.projectiles[a];
-			        	projectile.frame = (projectile.frame + (60/gameSpeed))%(projectile.animationTime*projectile.frames);
-			        	var projectileFrame = Math.floor(projectile.frame/projectile.animationTime).toString();
-			        	for (var i in projectile.hitboxes[projectileFrame]) {
-			          		var hitbox1 = ((projectile.facing == 'left') ? flipHitbox(projectile.hitboxes[projectileFrame][i]['hitbox']) : projectile.hitboxes[projectileFrame][i]['hitbox']);
-			          		for (var j in game.players) {
-			            		var otherPlayer = game.players[j];
-			            		if (otherPlayer.id != player.id && !contains(projectile.hitboxes[projectileFrame][i]['alreadyHit'], otherPlayer.id)) {
-			              			var otherFrame = Math.floor(otherPlayer.animationFrame/otherPlayer.fighter.animationTime).toString();
-			              			for (var o in otherPlayer.fighter.hurtboxes[otherPlayer.action][otherFrame]) {
-			                			var hitbox2 = ((otherPlayer.facing == 'left') ? flipHitbox(otherPlayer.fighter.hurtboxes[otherPlayer.action][otherFrame][o]) : otherPlayer.fighter.hurtboxes[otherPlayer.action][otherFrame][o]);
-			                			if (checkHit([projectile.x + hitbox1[0]*projectile.width, projectile.y + hitbox1[1]*projectile.height, projectile.x + hitbox1[2]*projectile.width, projectile.y + hitbox1[3]*projectile.height], [otherPlayer.x + hitbox2[0]*spriteWidth, otherPlayer.y + hitbox2[1]*spriteHeight, otherPlayer.x + hitbox2[2]*spriteWidth, otherPlayer.y + hitbox2[3]*spriteHeight])) {
-											var cont = false;
-											for (var l in projectile.hitboxes) {
-												var checkFrame = projectile.hitboxes[l];
-												for (var m in checkFrame) {
-												    var id = checkFrame[m]['id'];
-												    if (id == projectile.hitboxes[projectileFrame][i]['id'] && !contains(checkFrame[m]['alreadyHit'], otherPlayer.id)) {
-												        checkFrame[m]['alreadyHit'].push(otherPlayer.id);
-												        cont = true;
-												    }
-												}
+		      	for (var a in player.projectiles) {
+		        	var projectile = player.projectiles[a];
+		        	projectile.frame = (projectile.frame + (60/gameSpeed))%(projectile.animationTime*projectile.frames);
+		        	var projectileFrame = Math.floor(projectile.frame/projectile.animationTime).toString();
+		        	for (var i in projectile.hitboxes[projectileFrame]) {
+		          		var hitbox1 = ((projectile.facing == 'left') ? flipHitbox(projectile.hitboxes[projectileFrame][i]['hitbox']) : projectile.hitboxes[projectileFrame][i]['hitbox']);
+		          		for (var j in game.players) {
+		            		var otherPlayer = game.players[j];
+		            		if (otherPlayer.id != player.id && !contains(projectile.hitboxes[projectileFrame][i]['alreadyHit'], otherPlayer.id)) {
+		              			var otherFrame = Math.floor(otherPlayer.animationFrame/otherPlayer.fighter.animationTime).toString();
+		              			for (var o in otherPlayer.fighter.hurtboxes[otherPlayer.action][otherFrame]) {
+		                			var hitbox2 = ((otherPlayer.facing == 'left') ? flipHitbox(otherPlayer.fighter.hurtboxes[otherPlayer.action][otherFrame][o]) : otherPlayer.fighter.hurtboxes[otherPlayer.action][otherFrame][o]);
+		                			if (checkHit([projectile.x + hitbox1[0]*projectile.width, projectile.y + hitbox1[1]*projectile.height, projectile.x + hitbox1[2]*projectile.width, projectile.y + hitbox1[3]*projectile.height], [otherPlayer.x + hitbox2[0]*spriteWidth, otherPlayer.y + hitbox2[1]*spriteHeight, otherPlayer.x + hitbox2[2]*spriteWidth, otherPlayer.y + hitbox2[3]*spriteHeight])) {
+										var cont = false;
+										for (var l in projectile.hitboxes) {
+											var checkFrame = projectile.hitboxes[l];
+											for (var m in checkFrame) {
+											    var id = checkFrame[m]['id'];
+											    if (id == projectile.hitboxes[projectileFrame][i]['id'] && !contains(checkFrame[m]['alreadyHit'], otherPlayer.id)) {
+											        checkFrame[m]['alreadyHit'].push(otherPlayer.id);
+											        cont = true;
+											    }
 											}
+										}
 
-											if (cont) {
-												otherPlayer.launch += projectile.attacks[projectile.hitboxes[projectileFrame][i]['id']]['damage'];
-												otherPlayer.velX = ((projectile.facing == 'left') ? -1 : 1) * ((otherPlayer.launch/30)*(otherPlayer.launch/30)*projectile.attacks[projectile.hitboxes[projectileFrame][i]['id']]['launch'][0]/otherPlayer.fighter.weight + 10*projectile.attacks[projectile.hitboxes[projectileFrame][i]['id']]['launch'][0]/otherPlayer.fighter.weight);
-												otherPlayer.velY = (otherPlayer.launch/30)*(otherPlayer.launch/30)*projectile.attacks[projectile.hitboxes[projectileFrame][i]['id']]['launch'][1]/otherPlayer.fighter.weight + 10*projectile.attacks[projectile.hitboxes[projectileFrame][i]['id']]['launch'][1]/otherPlayer.fighter.weight;
-												otherPlayer.stun += (projectile.attacks[projectile.hitboxes[projectileFrame][i]['id']]['stun']*150) + otherPlayer.launch;
-												otherPlayer.facing = ((projectile.facing == 'left') ? 'right' : 'left');
-												projectile.hitsLeft -= 1;
-												if (projectile.hitsLeft <= 0) {
-													for (var l in player.projectiles) {
-														if (player.projectiles[l].id == projectile.id) {
-															player.projectiles.splice(l, 1);
-															break;
-														}
+										if (cont) {
+											otherPlayer.launch += projectile.attacks[projectile.hitboxes[projectileFrame][i]['id']]['damage'];
+											otherPlayer.velX = ((projectile.facing == 'left') ? -1 : 1) * ((otherPlayer.launch/30)*(otherPlayer.launch/30)*projectile.attacks[projectile.hitboxes[projectileFrame][i]['id']]['launch'][0]/otherPlayer.fighter.weight + 10*projectile.attacks[projectile.hitboxes[projectileFrame][i]['id']]['launch'][0]/otherPlayer.fighter.weight);
+											otherPlayer.velY = (otherPlayer.launch/30)*(otherPlayer.launch/30)*projectile.attacks[projectile.hitboxes[projectileFrame][i]['id']]['launch'][1]/otherPlayer.fighter.weight + 10*projectile.attacks[projectile.hitboxes[projectileFrame][i]['id']]['launch'][1]/otherPlayer.fighter.weight;
+											otherPlayer.stun += (projectile.attacks[projectile.hitboxes[projectileFrame][i]['id']]['stun']*150) + otherPlayer.launch;
+											otherPlayer.facing = ((projectile.facing == 'left') ? 'right' : 'left');
+											projectile.hitsLeft -= 1;
+											if (projectile.hitsLeft <= 0) {
+												for (var l in player.projectiles) {
+													if (player.projectiles[l].id == projectile.id) {
+														player.projectiles.splice(l, 1);
+														break;
 													}
 												}
 											}
-			                			}
-			              			}
-			            		}
-			          		}
-			        	}
-			      	}
-			    }
+										}
+		                			}
+		              			}
+		            		}
+		          		}
+		        	}
+		      	}
 
 			    for (var i in player.projectiles) {
 			      	var projectile = player.projectiles[i];
@@ -1020,6 +1023,17 @@ setInterval(function() {
 						player.alive = false;
 						player.stock -= 1;
 						player.deathTime = game.time;
+					} else if (!game.started && checkOffstage(player.x, player.y, previewStage)) {
+						player.x = previewStage.spawns[0][0];
+					    player.y = previewStage.spawns[0][1];
+					    player.velX = 0;
+					    player.velY = 0;
+					    player.alive = true;
+					    player.grounded = false;
+					    player.launch = 0;
+					    player.action = 'idle';
+					    player.animationFrame = 0;
+					    player.jumps = 0;
 					}
 
 					if((player.action == 'dtilt' || player.action == 'dair' || player.action == 'nair' || player.action == 'neutral' || player.action == 'forward' || player.action == 'bair' || player.action == 'fair' || player.action == 'uair') && frame == 0 && player.lastFrame[0] != 0 && player.lastFrame[1] == player.action) {
@@ -1051,7 +1065,7 @@ setInterval(function() {
 							player.action = 'idle';
 						}
 						if (player.movement.left) {
-							if (game.started && player.velX > -player.fighter.runSpeed*(60/gameSpeed)) {
+							if (player.velX > -player.fighter.runSpeed*(60/gameSpeed)) {
 					    		player.velX -= (player.fighter.runSpeed/1.31)*(60/gameSpeed);
 					    	}
 							if (player.action == 'idle' && player.grounded) {
@@ -1083,7 +1097,7 @@ setInterval(function() {
 				    		player.upPressed = false;
 				    	}
 				    	if (player.movement.right) {
-				    		if (game.started && player.velX < player.fighter.runSpeed*(60/gameSpeed)) {
+				    		if (player.velX < player.fighter.runSpeed*(60/gameSpeed)) {
 					    		player.velX += (player.fighter.runSpeed/1.31)*(60/gameSpeed);
 					    	}
 				      		if (player.action == 'idle' && player.grounded) {

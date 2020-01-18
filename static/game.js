@@ -1159,6 +1159,9 @@ function render() {
   }
 
   if(game && game != null && !game.started) {
+    context.fillStyle = 'rgba(255, 0, 0, 1)';
+    context.fillRect(canvas.width*0.4, canvas.height*0.7, canvas.width*0.5, canvas.height*0.07);
+
     context.lineWidth = 3;
     context.strokeStyle = 'black';
     context.fillStyle = 'black';
