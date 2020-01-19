@@ -1195,8 +1195,14 @@ setInterval(function() {
 setInterval(function() {
 	try {
 		for (var i in games) {
+			var game = games[i];
+			var stateSend = {'name': game.name, 'started': game.started, 'players': [], 'host': game.host, 'stage': game.stage};
+			for (var j in game.players) {
+				var player = game.players[j];
+				stateSend['players'].push({'name': player.name, 'id': player.id, 'won': player.won, 'lost': player.lost, 'animationFrame': player.animationFrame, 'fighter': player.fighter.name, 'sprite': player.sprite});
+			}
 			for (var j in games[i].players) {
-				io.to(games[i].players[j].id).emit('state', games[i]);
+				io.to(games[i].players[j].id).emit('state', stateSend);
 			}
 		}
 
@@ -1207,7 +1213,7 @@ setInterval(function() {
 	catch (e) {
 		console.log(e);
 	}
-}, 1000 / 30);
+}, 1000 / gameSpeed);
 
 setInterval(function() {
 	try {

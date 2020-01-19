@@ -302,6 +302,14 @@ canvas.style.left = 0;
 var context = canvas.getContext('2d');
 context.imageSmoothingEnabled = false;
 
+function getFighterIndex(name) {
+  for (var i in fighters) {
+    if (fighters[i].name == name) {
+      return i;
+    }
+  }
+}
+
 function createFighterButtonIDExists(id) {
   for (var i in createFighterButtons) {
     if (createFighterButtons[i].id == id) {
@@ -1057,6 +1065,8 @@ function render() {
       for (var drawPlayer in ((game.started) ? game.players : [player])) {
         numPlayer ++;
         var tempPlayer = ((game.started) ? game.players[drawPlayer] : player);
+        var tempFighter = fighters[getFighterIndex(tempPlayer.fighter)];
+        console.log(tempFighter);
         drawFrame = Math.floor(tempPlayer.animationFrame/tempPlayer.fighter.animationTime).toString();
         spriteWidth = tempPlayer.fighter.spriteWidth*canvas.width;
         spriteHeight = tempPlayer.fighter.spriteHeight*canvas.height;
