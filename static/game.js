@@ -564,7 +564,7 @@ function encodeNewFighter() {
       if(newFighterData['groundboxes'][i][j].length > 0) {
         newFighterString = newFighterString + j.toString() + '_';
         for(var k in newFighterData['groundboxes'][i][j]) {
-          newFighterString = newFighterString + ((newFighterData['groundboxes'][i][j][k] - 0.5 + ((l%2 == 0) ? newFighterData['spriteWidth'] : newFighterData['spriteHeight'])/2)/((l%2 == 0) ? newFighterData['spriteWidth'] : newFighterData['spriteHeight'])).toFixed(4).toString() + ',';
+          newFighterString = newFighterString + ((newFighterData['groundboxes'][i][j][k] - 0.5 + ((k%2 == 0) ? newFighterData['spriteWidth'] : newFighterData['spriteHeight'])/2)/((k%2 == 0) ? newFighterData['spriteWidth'] : newFighterData['spriteHeight'])).toFixed(4).toString() + ',';
         }
 
         newFighterString = newFighterString.slice(0, -1);
@@ -699,6 +699,18 @@ function newFighterLoadExisting(ind) {
         newFighterData['hurtboxes'][i][j][k].push(fighter.hurtboxes[i][j][k][2]*fighter.spriteWidth + 0.5 - fighter.spriteWidth/2);
         newFighterData['hurtboxes'][i][j][k].push(fighter.hurtboxes[i][j][k][3]*fighter.spriteHeight + 0.5 - fighter.spriteHeight/2);
       }
+    }
+  }
+
+  newFighterData['groundboxes'] = {};
+  for(var i in fighter.groundboxes) {
+    newFighterData['groundboxes'][i] = {};
+    for(var j in fighter.groundboxes[i]) {
+      newFighterData['groundboxes'][i][j] = [];
+      newFighterData['groundboxes'][i][j].push(fighter.groundboxes[i][j][0]*fighter.spriteWidth + 0.5 - fighter.spriteWidth/2);
+      newFighterData['groundboxes'][i][j].push(fighter.groundboxes[i][j][1]*fighter.spriteHeight + 0.5 - fighter.spriteHeight/2);
+      newFighterData['groundboxes'][i][j].push(fighter.groundboxes[i][j][2]*fighter.spriteWidth + 0.5 - fighter.spriteWidth/2);
+      newFighterData['groundboxes'][i][j].push(fighter.groundboxes[i][j][3]*fighter.spriteHeight + 0.5 - fighter.spriteHeight/2);
     }
   }
 

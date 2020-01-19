@@ -91,7 +91,7 @@ class Projectile {
 }
 
 class Fighter {
-	constructor(name, terminalVelocity, runSpeed, animationTime, jumps, jumpStrength, weight, spriteWidth, spriteHeight, hurtboxes, hitboxes, frames, attacks, effects, sprites) {
+	constructor(name, terminalVelocity, runSpeed, animationTime, jumps, jumpStrength, weight, spriteWidth, spriteHeight, hurtboxes, hitboxes, groundboxes, frames, attacks, effects, sprites) {
 		this.name = name;
 		this.terminalVelocity = terminalVelocity;
 		this.runSpeed = runSpeed;
@@ -103,6 +103,7 @@ class Fighter {
 		this.spriteHeight = spriteHeight;
 		this.hurtboxes = hurtboxes;
 		this.hitboxes = hitboxes;
+		this.groundboxes = groundboxes;
 		this.frames = frames;
 		this.attacks = attacks;
 		this.effects = effects;
@@ -266,6 +267,19 @@ function createFighter(data) {
 		}
 	}
 
+	rawDataArray = data['groundboxes'].split('|');
+	var groundboxes = {};
+	for (var i=0; i<rawDataArray.length; i+=2) {
+		groundboxes[rawDataArray[i]] = {};
+		tempFrame = rawDataArray[i+1].split('_');
+		for (var j=0; j<tempFrame.length; j+=2) {
+			if(tempFrame.length > 1) {
+				rect = tempFrame[j+1].split(',');
+				groundboxes[rawDataArray[i]][tempFrame[j]] = [parseFloat(rect[0]), parseFloat(rect[1]), parseFloat(rect[2]), parseFloat(rect[3])];
+			}
+		}
+	}
+
 	rawDataArray = data['attacks'].split('|');
 	var attacks = {};
 	for (var i=0; i<rawDataArray.length; i+=2) {
@@ -322,6 +336,7 @@ function createFighter(data) {
 		parseFloat(data['spriteHeight']),
 		hurtboxes,
 		hitboxes,
+		groundboxes,
 		frames,
 		attacks,
 		effects,
@@ -438,6 +453,8 @@ io.on('connection', function(socket) {
 		    player.velX = 0;
 		    player.velY = 0;
 		    player.jumps = 0;
+		    player.animationFrame = 0;
+		    player.facing = 'right';
 		}
 		catch (e) {
 			console.log(e);
@@ -836,68 +853,62 @@ setInterval(function() {
 		for (var i in games) {
 			game = games[i];
 			stage = game.stage;
-			var player;
 			var tempTime = game.time;
 			game.time = new Date();
 			var k = 0;
 			for (var j in game.players) {
-				player = game.players[j];
+				var player = game.players[j];
 
-				spriteWidth = player.fighter.spriteWidth;
-			    spriteHeight = player.fighter.spriteHeight;
+				var spriteWidth = player.fighter.spriteWidth;
+			    var spriteHeight = player.fighter.spriteHeight;
 
-
-			    frame = Math.floor(player.animationFrame/player.fighter.animationTime).toString();
+			    var frame = Math.floor(player.animationFrame/player.fighter.animationTime).toString();
 
 			    if (player.lastAttack >= 0) {
 			    	player.lastAttack -= (60/gameSpeed);
 			    }
 
-			    if(player && player.fighter && stage && stage.hitboxes && !player.grounded) {
-			      	for (var hitbox1 in player.fighter.hurtboxes[player.action][frame]) {
-			        	for (var j in ((game.started) ? stage.hitboxes : previewStage.hitboxes)) {
-				          	hitbox2 = ((game.started) ? stage.hitboxes[j] : previewStage.hitboxes[j]);
-				          	if (checkHit([player.x + player.fighter.hurtboxes[player.action][frame][hitbox1][0]*spriteWidth, player.y + player.fighter.hurtboxes[player.action][frame][hitbox1][1]*spriteHeight, player.x + player.fighter.hurtboxes[player.action][frame][hitbox1][2]*spriteWidth, player.y + player.fighter.hurtboxes[player.action][frame][hitbox1][3]*spriteHeight], hitbox2)) {
-				            	if(player.x + player.fighter.hurtboxes[player.action][frame][hitbox1][0]*spriteWidth > hitbox2[0]) {
-				              		if(player.x + player.fighter.hurtboxes[player.action][frame][hitbox1][2]*spriteWidth < hitbox2[2]) {
-				                		//if(hitbox1 == 'leftleg' || hitbox1 == 'rightleg') {
-			                 	 		player.y = hitbox2[1] - player.fighter.hurtboxes[player.action][frame][hitbox1][3]*spriteHeight;
-										player.velY = 0;
-										player.grounded = true;
-										player.jumps = player.fighter.jumps;
-				                		//}
-				              		} else {
-				                		if (hitbox2[2] - player.fighter.hurtboxes[player.action][frame][hitbox1][0]*spriteWidth != null) {
-								 			if (player.velX < 0) {
-												//player.x = hitbox2[2] - player.fighter.hurtboxes[player.action][frame][hitbox1][0]*spriteWidth;
-											}
-										}
-				              		}
-				    			} else {
-				              		if (hitbox2[0] - player.fighter.hurtboxes[player.action][frame][hitbox1][2]*spriteWidth != null) {
-							 			if (player.velX > 0) {
-											//player.x = hitbox2[0] - player.fighter.hurtboxes[player.action][frame][hitbox1][2]*spriteWidth;
+			    if(player && player.fighter && !player.grounded && ((game.started && stage && stage.hitboxes) || (!game.started && previewStage && previewStage.hitboxes))) {
+			    	var groundbox = player.fighter.groundboxes[player.action][frame];
+		        	for (var j in ((game.started) ? stage.hitboxes : previewStage.hitboxes)) {
+			          	var hitbox2 = ((game.started) ? stage.hitboxes[j] : previewStage.hitboxes[j]);
+			          	if (checkHit([player.x + groundbox[0]*spriteWidth, player.y + groundbox[1]*spriteHeight, player.x + groundbox[2]*spriteWidth, player.y + groundbox[3]*spriteHeight], hitbox2)) {
+			            	if(player.x + groundbox[0]*spriteWidth > hitbox2[0]) {
+			              		if(player.x + groundbox[2]*spriteWidth < hitbox2[2]) {
+			                		//if(hitbox1 == 'leftleg' || hitbox1 == 'rightleg') {
+		                 	 		player.y = hitbox2[1] - groundbox[3]*spriteHeight;
+									player.velY = 0;
+									player.grounded = true;
+									player.jumps = player.fighter.jumps;
+			                		//}
+			              		} else {
+			                		if (hitbox2[2] - groundbox[0]*spriteWidth != null) {
+							 			if (player.velX < 0) {
+											//player.x = hitbox2[2] - player.fighter.hurtboxes[player.action][frame][hitbox1][0]*spriteWidth;
 										}
 									}
-				            	}
-				          	}
-			        	}
-			      	}
-			    }
-
-			    if(player && player.fighter && stage && stage.hitboxes && player.grounded) {
+			              		}
+			    			} else {
+			              		if (hitbox2[0] - groundbox[2]*spriteWidth != null) {
+						 			if (player.velX > 0) {
+										//player.x = hitbox2[0] - player.fighter.hurtboxes[player.action][frame][hitbox1][2]*spriteWidth;
+									}
+								}
+			            	}
+			          	}
+		        	}
+			    } else if(player && player.fighter && player.grounded && ((game.started && stage && stage.hitboxes) || (!game.started && previewStage && previewStage.hitboxes))) {
 			    	player.grounded = false;
-			      	for (var hitbox1 in player.fighter.hurtboxes[player.action][frame]) {
-			        	for (var j in ((game.started) ? stage.hitboxes : previewStage.hitboxes)) {
-			          		hitbox2 = ((game.started) ? stage.hitboxes[j] : previewStage.hitboxes[j]);
-			          		if (checkHit([player.x + player.fighter.hurtboxes[player.action][frame][hitbox1][0]*spriteWidth, 0.05 + player.y + player.fighter.hurtboxes[player.action][frame][hitbox1][1]*spriteHeight, player.x + player.fighter.hurtboxes[player.action][frame][hitbox1][2]*spriteWidth, 0.05 + player.y + player.fighter.hurtboxes[player.action][frame][hitbox1][3]*spriteHeight], hitbox2)) {
-			            		player.y = hitbox2[1] - player.fighter.hurtboxes[player.action][frame][hitbox1][3]*spriteHeight;
-								player.velY = 0;
-								player.grounded = true;
-								player.jumps = player.fighter.jumps;
-			          		}
-			        	}
-			      	}
+			    	var groundbox = player.fighter.groundboxes[player.action][frame];
+		        	for (var j in ((game.started) ? stage.hitboxes : previewStage.hitboxes)) {
+		          		var hitbox2 = ((game.started) ? stage.hitboxes[j] : previewStage.hitboxes[j]);
+		          		if (checkHit([player.x + groundbox[0]*spriteWidth, 0.05 + player.y + groundbox[1]*spriteHeight, player.x + groundbox[2]*spriteWidth, 0.05 + player.y + groundbox[3]*spriteHeight], hitbox2)) {
+		            		player.y = hitbox2[1] - groundbox[3]*spriteHeight;
+							player.velY = 0;
+							player.grounded = true;
+							player.jumps = player.fighter.jumps;
+		          		}
+		        	}
 			    }
 
 			    if (game.started) {
@@ -906,6 +917,7 @@ setInterval(function() {
 			        	for (var j in game.players) {
 			          		var otherPlayer = game.players[j];
 			          		if (otherPlayer.id != player.id && getDistance(player.x, player.y, otherPlayer.x, otherPlayer.y) < maxCollisionDistance && !contains(player.fighter.hitboxes[player.action][frame][i]['alreadyHit'], otherPlayer.id)) {
+			            		console.log(getDistance(player.x, player.y, otherPlayer.x, otherPlayer.y));
 			            		var otherFrame = Math.floor(otherPlayer.animationFrame/otherPlayer.fighter.animationTime).toString();
 			            		for (var o in otherPlayer.fighter.hurtboxes[otherPlayer.action][otherFrame]) {
 			        				var hitbox2 = ((player.facing == 'left') ? flipHitbox(otherPlayer.fighter.hurtboxes[otherPlayer.action][otherFrame][o]) : otherPlayer.fighter.hurtboxes[otherPlayer.action][otherFrame][o]);
