@@ -14,6 +14,7 @@ var maxPlayers = 4;
 var totalPlayers = 0;
 var stockTotal = 5;
 var gameSpeed = 30;
+var maxCollisionDistance = 0.1;
 var rawData = {};
 var spriteData = {};
 var fighters = [];
@@ -45,6 +46,10 @@ function contains(array, value) {
 
 function setValue(val) {
 	return function() {return val;};
+}
+
+function getDistance(x0, y0, x1, y1) {
+	return Math.sqrt((x1-x0)*(x1-x0) + (y1-y0)*(y1-y0));
 }
 
 class Stage {
@@ -886,7 +891,10 @@ setInterval(function() {
 			        	for (var j in ((game.started) ? stage.hitboxes : previewStage.hitboxes)) {
 			          		hitbox2 = ((game.started) ? stage.hitboxes[j] : previewStage.hitboxes[j]);
 			          		if (checkHit([player.x + player.fighter.hurtboxes[player.action][frame][hitbox1][0]*spriteWidth, 0.05 + player.y + player.fighter.hurtboxes[player.action][frame][hitbox1][1]*spriteHeight, player.x + player.fighter.hurtboxes[player.action][frame][hitbox1][2]*spriteWidth, 0.05 + player.y + player.fighter.hurtboxes[player.action][frame][hitbox1][3]*spriteHeight], hitbox2)) {
-			            		player.grounded = true;
+			            		player.y = hitbox2[1] - player.fighter.hurtboxes[player.action][frame][hitbox1][3]*spriteHeight;
+								player.velY = 0;
+								player.grounded = true;
+								player.jumps = player.fighter.jumps;
 			          		}
 			        	}
 			      	}
@@ -897,7 +905,7 @@ setInterval(function() {
 			        	var hitbox1 = ((player.facing == 'left') ? flipHitbox(player.fighter.hitboxes[player.action][frame][i]['hitbox']) : player.fighter.hitboxes[player.action][frame][i]['hitbox']);
 			        	for (var j in game.players) {
 			          		var otherPlayer = game.players[j];
-			          		if (otherPlayer.id != player.id && !contains(player.fighter.hitboxes[player.action][frame][i]['alreadyHit'], otherPlayer.id)) {
+			          		if (otherPlayer.id != player.id && getDistance(player.x, player.y, otherPlayer.x, otherPlayer.y) < maxCollisionDistance && !contains(player.fighter.hitboxes[player.action][frame][i]['alreadyHit'], otherPlayer.id)) {
 			            		var otherFrame = Math.floor(otherPlayer.animationFrame/otherPlayer.fighter.animationTime).toString();
 			            		for (var o in otherPlayer.fighter.hurtboxes[otherPlayer.action][otherFrame]) {
 			        				var hitbox2 = ((player.facing == 'left') ? flipHitbox(otherPlayer.fighter.hurtboxes[otherPlayer.action][otherFrame][o]) : otherPlayer.fighter.hurtboxes[otherPlayer.action][otherFrame][o]);
@@ -936,7 +944,7 @@ setInterval(function() {
 		          		var hitbox1 = ((projectile.facing == 'left') ? flipHitbox(projectile.hitboxes[projectileFrame][i]['hitbox']) : projectile.hitboxes[projectileFrame][i]['hitbox']);
 		          		for (var j in game.players) {
 		            		var otherPlayer = game.players[j];
-		            		if (otherPlayer.id != player.id && !contains(projectile.hitboxes[projectileFrame][i]['alreadyHit'], otherPlayer.id)) {
+		            		if (otherPlayer.id != player.id && getDistance(projectile.x, projectile.y, otherPlayer.x, otherPlayer.y) < maxCollisionDistance && !contains(projectile.hitboxes[projectileFrame][i]['alreadyHit'], otherPlayer.id)) {
 		              			var otherFrame = Math.floor(otherPlayer.animationFrame/otherPlayer.fighter.animationTime).toString();
 		              			for (var o in otherPlayer.fighter.hurtboxes[otherPlayer.action][otherFrame]) {
 		                			var hitbox2 = ((otherPlayer.facing == 'left') ? flipHitbox(otherPlayer.fighter.hurtboxes[otherPlayer.action][otherFrame][o]) : otherPlayer.fighter.hurtboxes[otherPlayer.action][otherFrame][o]);

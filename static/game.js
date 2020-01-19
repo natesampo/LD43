@@ -121,6 +121,7 @@ var newFighterData = {
   'runSpeed': 0.003,
   'hurtboxes': {},
   'hitboxes': {},
+  'groundboxes': {},
   'attacks': {},
   'animationTime': 5,
   'spriteWidth': 0.05,
@@ -141,7 +142,7 @@ var newFighterData = {
 var newFighterNewImage = false;
 var newFighterNewSpriteSheet = false;
 var newFighterDraw = '';
-var newFighterView = ['hurtbox', 'hitbox'];
+var newFighterView = ['hurtbox', 'hitbox', 'groundbox'];
 var newFighterBoxSelected = [null, ''];
 var mouseX = 0;
 var mouseY = 0;
@@ -245,10 +246,13 @@ var createFighterButtons = [new Button('back', function() {return canvas.width/6
   new Button('renameFighterRunSpeed', function() {return 0.127*canvas.width - this.getWidth()/2}, function() {return 0.349*canvas.height;}, function() {context.font = (canvas.width/106.67).toString() + 'px Arial'; return ((namingFighterRunSpeed) ? context.measureText(tempFighterRunSpeed).width + canvas.width/384 : context.measureText(newFighterData['runSpeed'].toString()).width + canvas.width/384);}, function() {return canvas.height/43.2;}, 1, function() {if (!namingFighterRunSpeed) {tempFighterRunSpeed = '';} namingFighterRunSpeed = true;}, function() {return true;}, function() {return 'white';}, function() {context.fillStyle = this.textColor; return [((!namingFighterRunSpeed) ? newFighterData['runSpeed'].toString() : tempFighterRunSpeed)];}, 'black', function() {return (canvas.width/106.67).toString() + 'px Arial';}, function() {return null;}, function() {return true;}),
   new Button('addHurtbox', function() {return 2.52*canvas.width/4;}, function() {return canvas.height/4;}, function() {return canvas.width/10;}, function() {return canvas.height/20;}, 3, function() {newFighterDraw = 'hurtbox';}, function() {return true;}, function() {return ((newFighterDraw == 'hurtbox' || newFighterDraw.substring(0, 11) == 'hurtboxDraw') ? 'red' : 'white');}, function() {return ['Add Hurtbox'];}, 'black', function() {return (canvas.width/70).toString() + 'px Arial';}, function() {return null;}, function() {return (newFighterAction != 'stock' && newFighterData['effects'][newFighterAction]);}),
   new Button('addHitbox', function() {return 2.52*canvas.width/4 + this.getWidth() + canvas.width/120;}, function() {return canvas.height/4;}, function() {return canvas.width/10;}, function() {return canvas.height/20;}, 3, function() {newFighterDraw = 'hitbox';}, function() {return true;}, function() {return ((newFighterDraw == 'hitbox' || newFighterDraw.substring(0, 10) == 'hitboxDraw') ? 'blue' : 'white');}, function() {return ['Add Hitbox'];}, 'black', function() {return (canvas.width/70).toString() + 'px Arial';}, function() {return null;}, function() {return (newFighterAction != 'stock');}),
+  new Button('addGroundbox', function() {return 0.686*canvas.width;}, function() {return canvas.height/14;}, function() {return canvas.width/10;}, function() {return canvas.height/20;}, 3, function() {if (newFighterData['groundboxes'][newFighterAction] && newFighterData['groundboxes'][newFighterAction][newFighterFrame] && newFighterData['groundboxes'][newFighterAction][newFighterFrame].length > 0) {delete newFighterData['groundboxes'][newFighterAction][newFighterFrame];} else {newFighterDraw = 'groundbox';}}, function() {return true;}, function() {return ((newFighterDraw == 'groundbox' || newFighterDraw.substring(0, 10) == 'groundboxDraw') ? 'rgba(181, 101, 29, 1)' : 'white');}, function() {return ((newFighterData['groundboxes'][newFighterAction] && newFighterData['groundboxes'][newFighterAction][newFighterFrame] && newFighterData['groundboxes'][newFighterAction][newFighterFrame].length > 0) ? ['Remove Groundbox'] : ['Add Groundbox']);}, 'black', function() {return (canvas.width/100).toString() + 'px Arial';}, function() {return null;}, function() {return (newFighterAction != 'stock' && newFighterData['effects'][newFighterAction]);}),
   new Button('viewOnlyHurtbox', function() {return 2.52*canvas.width/4;}, function() {return canvas.height/4+this.getHeight()+canvas.height/120;}, function() {return canvas.width/10;}, function() {return canvas.height/20;}, 3, function() {if (contains(newFighterView, 'hurtbox')) {remove(newFighterView, 'hurtbox');} else {newFighterView.push('hurtbox');}}, function() {return true;}, function() {return ((contains(newFighterView, 'hurtbox')) ? 'red' : 'white');}, function() {return ['View Hurtboxes'];}, 'black', function() {return (canvas.width/90).toString() + 'px Arial';}, function() {return null;}, function() {return (newFighterAction != 'stock' && newFighterData['effects'][newFighterAction]);}),
   new Button('viewOnlyHitbox', function() {return 2.52*canvas.width/4 + this.getWidth() + canvas.width/120;}, function() {return canvas.height/4+this.getHeight()+canvas.height/120;}, function() {return canvas.width/10;}, function() {return canvas.height/20;}, 3, function() {if (contains(newFighterView, 'hitbox')) {remove(newFighterView, 'hitbox');} else {newFighterView.push('hitbox');}}, function() {return true;}, function() {return ((contains(newFighterView, 'hitbox')) ? 'blue' : 'white');}, function() {return ['View Hitboxes'];}, 'black', function() {return (canvas.width/90).toString() + 'px Arial';}, function() {return null;}, function() {return (newFighterAction != 'stock');}),
+  new Button('viewOnlyGroundbox', function() {return 0.686*canvas.width;}, function() {return canvas.height/14+this.getHeight()+canvas.height/120;}, function() {return canvas.width/10;}, function() {return canvas.height/20;}, 3, function() {if (contains(newFighterView, 'groundbox')) {remove(newFighterView, 'groundbox');} else {newFighterView.push('groundbox');}}, function() {return true;}, function() {return ((contains(newFighterView, 'groundbox')) ? 'rgba(181, 101, 29, 1)' : 'white');}, function() {return ['View Groundbox'];}, 'black', function() {return (canvas.width/90).toString() + 'px Arial';}, function() {return null;}, function() {return (newFighterAction != 'stock' && newFighterData['effects'][newFighterAction]);}),
   new Button('copyHurtbox', function() {return 2.52*canvas.width/4;}, function() {return canvas.height/4+2*(this.getHeight()+canvas.height/120);}, function() {return canvas.width/10;}, function() {return canvas.height/20;}, 3, function() {if (!newFighterData['hurtboxes'][newFighterAction]) {newFighterData['hurtboxes'][newFighterAction] = {};} newFighterData['hurtboxes'][newFighterAction][newFighterFrame] = []; if (newFighterData['hurtboxes'][newFighterAction][newFighterFrame-1]) {for(var i in newFighterData['hurtboxes'][newFighterAction][newFighterFrame-1]) {newFighterData['hurtboxes'][newFighterAction][newFighterFrame].push(newFighterData['hurtboxes'][newFighterAction][newFighterFrame-1][i].slice());}}}, function() {return true;}, function() {return 'white';}, function() {return ['Copy Previous', 'Frame Hurtboxes'];}, 'black', function() {return (canvas.width/90).toString() + 'px Arial';}, function() {return null;}, function() {return (newFighterAction != 'stock' && newFighterData['effects'][newFighterAction]);}),
   new Button('copyHitbox', function() {return 2.52*canvas.width/4 + this.getWidth() + canvas.width/120;}, function() {return canvas.height/4+2*(this.getHeight()+canvas.height/120);}, function() {return canvas.width/10;}, function() {return canvas.height/20;}, 3, function() {if (!newFighterData['hitboxes'][newFighterAction]) {newFighterData['hitboxes'][newFighterAction] = {};} newFighterData['hitboxes'][newFighterAction][newFighterFrame] = []; if (newFighterData['hitboxes'][newFighterAction][newFighterFrame-1]) {for(var i in newFighterData['hitboxes'][newFighterAction][newFighterFrame-1]) {newFighterData['hitboxes'][newFighterAction][newFighterFrame].push(newFighterData['hitboxes'][newFighterAction][newFighterFrame-1][i].slice());}}}, function() {return true;}, function() {return 'white';}, function() {return ['Copy Previous', 'Frame Hitboxes'];}, 'black', function() {return (canvas.width/90).toString() + 'px Arial';}, function() {return null;}, function() {return (newFighterAction != 'stock');}),
+  new Button('copyGroundbox', function() {return 0.686*canvas.width;}, function() {return canvas.height/14+2*(this.getHeight()+canvas.height/120);}, function() {return canvas.width/10;}, function() {return canvas.height/20;}, 3, function() {if (!newFighterData['groundboxes'][newFighterAction]) {newFighterData['groundboxes'][newFighterAction] = {};} newFighterData['groundboxes'][newFighterAction][newFighterFrame] = []; if (newFighterData['groundboxes'][newFighterAction][newFighterFrame-1]) {newFighterData['groundboxes'][newFighterAction][newFighterFrame] = newFighterData['groundboxes'][newFighterAction][newFighterFrame-1].slice();}}, function() {return true;}, function() {return 'white';}, function() {return ['Copy Previous', 'Frame Groundbox'];}, 'black', function() {return (canvas.width/90).toString() + 'px Arial';}, function() {return null;}, function() {return (newFighterAction != 'stock' && newFighterData['effects'][newFighterAction]);}),
   new Button('clearHurtbox', function() {return 2.52*canvas.width/4;}, function() {return canvas.height/4+3*(this.getHeight()+canvas.height/120);}, function() {return canvas.width/10;}, function() {return canvas.height/20;}, 3, function() {if (newFighterData['hurtboxes'][newFighterAction] && newFighterData['hurtboxes'][newFighterAction][newFighterFrame]) {newFighterData['hurtboxes'][newFighterAction][newFighterFrame] = [];}}, function() {return true;}, function() {return 'white';}, function() {return ['Clear Hurtboxes'];}, 'black', function() {return (canvas.width/90).toString() + 'px Arial';}, function() {return null;}, function() {return (newFighterAction != 'stock' && newFighterData['effects'][newFighterAction]);}),
   new Button('clearHitbox', function() {return 2.52*canvas.width/4 + this.getWidth() + canvas.width/120;}, function() {return canvas.height/4+3*(this.getHeight()+canvas.height/120);}, function() {return canvas.width/10;}, function() {return canvas.height/20;}, 3, function() {if (newFighterData['hitboxes'][newFighterAction] && newFighterData['hitboxes'][newFighterAction][newFighterFrame]) {newFighterData['hitboxes'][newFighterAction][newFighterFrame] = [];}}, function() {return true;}, function() {return 'white';}, function() {return ['Clear Hitboxes'];}, 'black', function() {return (canvas.width/90).toString() + 'px Arial';}, function() {return null;}, function() {return (newFighterAction != 'stock');}),
   new Button('idle', function() {return 0.40625*canvas.width-this.getWidth();}, function() {return canvas.height/4;}, function() {return 0.09375*canvas.width;}, function() {return canvas.height/24;}, 3, function() {newFighterAction=this.id; newFighterFrame=0; var largest=0; if(imgs && imgs['new'] && imgs['new'][newFighterSprite] && imgs['new'][newFighterSprite][newFighterAction]) {for(var i in Object.keys(imgs['new'][newFighterSprite][newFighterAction])) {if (parseInt(Object.keys(imgs['new'][newFighterSprite][newFighterAction])[i])>largest) {largest=parseInt(Object.keys(imgs['new'][newFighterSprite][newFighterAction])[i]);}}} while(createFighterButtons.length != createFighterButtonsLength+largest+1) {if (createFighterButtons.length > createFighterButtonsLength+largest+1) {newFighterButtonRemove();} else {newFighterButton();}} switchAttackInputs();}, function() {return true;}, function() {return ((newFighterAction == this.id) ? 'white' : 'rgba(210, 210, 210, 1)');}, function() {return ['Idle'];}, 'black', function() {return (canvas.width/85).toString() + 'px Arial';}, function() {return null;}, function() {return true;}),
@@ -288,13 +292,6 @@ var gameButtons = [new Button('lobby', function() {return canvas.width/2 - canva
 var preGameButtonsLength = preGameButtons.length;
 var lobbyButtonsLength = lobbyButtons.length;
 var createFighterButtonsLength = createFighterButtons.length-1;
-
-var movement = {
-  up: false,
-  down: false,
-  left: false,
-  right: false
-}
 
 var canvas = document.getElementById('canvas');
 canvas.width = window.innerWidth;
@@ -555,6 +552,30 @@ function encodeNewFighter() {
       }
       newFighterString = newFighterString + '|';
     }
+  }
+  if(newFighterString[newFighterString.length-1] != '@') {
+    newFighterString = newFighterString.slice(0, -1);
+  }
+
+  newFighterString = newFighterString + '\ngroundboxes@';
+  for(var i in newFighterData['groundboxes']) {
+    newFighterString = newFighterString + i + '|';
+    for(var j in newFighterData['groundboxes'][i]) {
+      if(newFighterData['groundboxes'][i][j].length > 0) {
+        newFighterString = newFighterString + j.toString() + '_';
+        for(var k in newFighterData['groundboxes'][i][j]) {
+          newFighterString = newFighterString + ((newFighterData['groundboxes'][i][j][k] - 0.5 + ((l%2 == 0) ? newFighterData['spriteWidth'] : newFighterData['spriteHeight'])/2)/((l%2 == 0) ? newFighterData['spriteWidth'] : newFighterData['spriteHeight'])).toFixed(4).toString() + ',';
+        }
+
+        newFighterString = newFighterString.slice(0, -1);
+        newFighterString = newFighterString + '_';
+      }
+    }
+
+    if(newFighterString[newFighterString.length-1] != '|') {
+      newFighterString = newFighterString.slice(0, -1);
+    }
+    newFighterString = newFighterString + '|';
   }
   if(newFighterString[newFighterString.length-1] != '@') {
     newFighterString = newFighterString.slice(0, -1);
@@ -1432,6 +1453,18 @@ function render() {
       context.drawImage(imgs['new'][newFighterSprite][newFighterAction][newFighterFrame], canvas.width/2 - (newFighterData['spriteWidth']*canvas.width)/2, canvas.height/2 - (newFighterData['spriteHeight']*canvas.height)/2, newFighterData['spriteWidth']*canvas.width, newFighterData['spriteHeight']*canvas.height);
     }
 
+    if (contains(newFighterView, 'groundbox') && newFighterData['groundboxes'][newFighterAction] && newFighterData['groundboxes'][newFighterAction][newFighterFrame]) {
+      var hitbox = newFighterData['groundboxes'][newFighterAction][newFighterFrame];
+      context.fillStyle = ((newFighterBoxSelected[1] == 'groundbox') ? 'rgba(200, 200, 200, 0.6)' : 'rgba(181, 101, 29, 0.3)');
+      context.fillRect(hitbox[0]*canvas.width, hitbox[1]*canvas.height, (hitbox[2]-hitbox[0])*canvas.width, (hitbox[3]-hitbox[1])*canvas.height);
+      context.strokeStyle = ((newFighterBoxSelected[1] == 'groundbox') ? 'rgba(100, 100, 100, 1)' : 'rgba(181, 101, 29, 1)');
+      context.lineWidth = 2;
+      context.beginPath();
+      context.rect(hitbox[0]*canvas.width, hitbox[1]*canvas.height, (hitbox[2]-hitbox[0])*canvas.width, (hitbox[3]-hitbox[1])*canvas.height);
+      context.stroke();
+      context.closePath();
+    }
+
     if (contains(newFighterView, 'hurtbox') && newFighterData['hurtboxes'][newFighterAction] && newFighterData['hurtboxes'][newFighterAction][newFighterFrame]) {
       for (var i in newFighterData['hurtboxes'][newFighterAction][newFighterFrame]) {
         var hitbox = newFighterData['hurtboxes'][newFighterAction][newFighterFrame][i];
@@ -1933,6 +1966,15 @@ document.addEventListener('mousedown', function(event) {
       }
     }
 
+    if (newFighterBoxSelected[1] && newFighterBoxSelected[1] != '') {
+      if (newFighterBoxSelected[1] == 'groundbox') {
+        hitboxResize = newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame];
+      }
+      else {
+        hitboxResize = newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame][newFighterBoxSelected[0]];
+      }
+    }
+
     if (newFighterDraw == 'hurtbox') {
       if (!newFighterData['hurtboxes'][newFighterAction]) {
         newFighterData['hurtboxes'][newFighterAction] = {};
@@ -1970,19 +2012,27 @@ document.addEventListener('mousedown', function(event) {
 
       newFighterData['attacks'][newFighterAction][0]['frames'][newFighterFrame].push(newFighterData['hitboxes'][newFighterAction][newFighterFrame].length-1);
 
-    } else if (newFighterBoxSelected[0] != null && Math.abs(event.clientX - newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame][newFighterBoxSelected[0]][0]*canvas.width) < canvas.width/180) {
-        if (newFighterBoxSelected[0] != null && Math.abs(event.clientY - newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame][newFighterBoxSelected[0]][1]*canvas.height) < canvas.height/90) {
+    } else if (newFighterDraw == 'groundbox') {
+      if (!newFighterData['groundboxes'][newFighterAction]) {
+        newFighterData['groundboxes'][newFighterAction] = {};
+      }
+
+      newFighterDraw = 'groundboxDraw0';
+
+      newFighterData['groundboxes'][newFighterAction][newFighterFrame] = [event.clientX/canvas.width, event.clientY/canvas.height, event.clientX/canvas.width, event.clientY/canvas.height];
+    } else if (newFighterBoxSelected[0] != null && Math.abs(event.clientX - hitboxResize[0]*canvas.width) < canvas.width/180) {
+        if (newFighterBoxSelected[0] != null && Math.abs(event.clientY - hitboxResize[1]*canvas.height) < canvas.height/90) {
           cornerSelected = [0, 1];
-        } else if (newFighterBoxSelected[0] != null && Math.abs(event.clientY - newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame][newFighterBoxSelected[0]][3]*canvas.height) < canvas.height/90) {
+        } else if (newFighterBoxSelected[0] != null && Math.abs(event.clientY - hitboxResize[3]*canvas.height) < canvas.height/90) {
           cornerSelected = [0, 3];
         }
-    } else if (newFighterBoxSelected[0] != null && Math.abs(event.clientX - newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame][newFighterBoxSelected[0]][2]*canvas.width) < canvas.width/180) {
-      if (newFighterBoxSelected[0] != null && Math.abs(event.clientY - newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame][newFighterBoxSelected[0]][1]*canvas.height) < canvas.height/90) {
+    } else if (newFighterBoxSelected[0] != null && Math.abs(event.clientX - hitboxResize[2]*canvas.width) < canvas.width/180) {
+      if (newFighterBoxSelected[0] != null && Math.abs(event.clientY - hitboxResize[1]*canvas.height) < canvas.height/90) {
           cornerSelected = [2, 1];
-        } else if (newFighterBoxSelected[0] != null && Math.abs(event.clientY - newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame][newFighterBoxSelected[0]][3]*canvas.height) < canvas.height/90) {
+        } else if (newFighterBoxSelected[0] != null && Math.abs(event.clientY - hitboxResize[3]*canvas.height) < canvas.height/90) {
           cornerSelected = [2, 3];
         }
-    } else if (newFighterBoxSelected[0] != null && event.clientX < newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame][newFighterBoxSelected[0]][2]*canvas.width && event.clientX > newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame][newFighterBoxSelected[0]][0]*canvas.width && event.clientY < newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame][newFighterBoxSelected[0]][3]*canvas.height && event.clientY > newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame][newFighterBoxSelected[0]][1]*canvas.height) {
+    } else if (newFighterBoxSelected[0] != null && event.clientX < hitboxResize[2]*canvas.width && event.clientX > hitboxResize[0]*canvas.width && event.clientY < hitboxResize[3]*canvas.height && event.clientY > hitboxResize[1]*canvas.height) {
       dragging = true;
     } else if (newFighterBoxSelected[0] != null && newFighterBoxSelected[1] == 'hitbox') {
       if (newFighterData['attacks'][newFighterAction]) {
@@ -2014,39 +2064,56 @@ document.addEventListener('mouseup', function(event) {
     dragging = false;
     var letters = 0;
     var drawStyle = '';
+    var hitboxDrawing;
+    var hitboxResize;
     if (newFighterDraw.substring(0, 10) == 'hitboxDraw') {
       letters = 10;
       drawStyle = 'hitboxes';
+      hitboxDrawing = newFighterData[drawStyle][newFighterAction][newFighterFrame][newFighterDraw.substring(letters)];
     } else if (newFighterDraw.substring(0, 11) == 'hurtboxDraw') {
       letters = 11;
       drawStyle = 'hurtboxes';
+      hitboxDrawing = newFighterData[drawStyle][newFighterAction][newFighterFrame][newFighterDraw.substring(letters)];
+    } else if (newFighterDraw.substring(0, 13) == 'groundboxDraw') {
+      letters = 13;
+      drawStyle = 'groundboxes';
+      hitboxDrawing = newFighterData[drawStyle][newFighterAction][newFighterFrame];
     }
 
-    if (drawStyle != '' && (newFighterData[drawStyle][newFighterAction][newFighterFrame][newFighterDraw.substring(letters)][0]*canvas.width != event.clientX || newFighterData[drawStyle][newFighterAction][newFighterFrame][newFighterDraw.substring(letters)][1]*canvas.height != event.clientY)) {
-      if (newFighterData[drawStyle][newFighterAction][newFighterFrame][newFighterDraw.substring(letters)][0] > newFighterData[drawStyle][newFighterAction][newFighterFrame][newFighterDraw.substring(letters)][2]) {
-        var temp = newFighterData[drawStyle][newFighterAction][newFighterFrame][newFighterDraw.substring(letters)][0];
-        newFighterData[drawStyle][newFighterAction][newFighterFrame][newFighterDraw.substring(letters)][0] = newFighterData[drawStyle][newFighterAction][newFighterFrame][newFighterDraw.substring(letters)][2];
-        newFighterData[drawStyle][newFighterAction][newFighterFrame][newFighterDraw.substring(letters)][2] = temp;
+    if (newFighterBoxSelected[1] && newFighterBoxSelected[1] != '') {
+      if (newFighterBoxSelected[1] == 'groundbox') {
+        hitboxResize = newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame];
+      }
+      else {
+        hitboxResize = newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame][newFighterBoxSelected[0]];
+      }
+    }
+
+    if (drawStyle != '' && (hitboxDrawing[0]*canvas.width != event.clientX || hitboxDrawing[1]*canvas.height != event.clientY)) {
+      if (hitboxDrawing[0] > hitboxDrawing[2]) {
+        var temp = hitboxDrawing[0];
+        hitboxDrawing[0] = hitboxDrawing[2];
+        hitboxDrawing[2] = temp;
       }
 
-      if (newFighterData[drawStyle][newFighterAction][newFighterFrame][newFighterDraw.substring(letters)][1] > newFighterData[drawStyle][newFighterAction][newFighterFrame][newFighterDraw.substring(letters)][3]) {
-        var temp = newFighterData[drawStyle][newFighterAction][newFighterFrame][newFighterDraw.substring(letters)][1];
-        newFighterData[drawStyle][newFighterAction][newFighterFrame][newFighterDraw.substring(letters)][1] = newFighterData[drawStyle][newFighterAction][newFighterFrame][newFighterDraw.substring(letters)][3];
-        newFighterData[drawStyle][newFighterAction][newFighterFrame][newFighterDraw.substring(letters)][3] = temp;
+      if (hitboxDrawing[1] > hitboxDrawing[3]) {
+        var temp = hitboxDrawing[1];
+        hitboxDrawing[1] = hitboxDrawing[3];
+        hitboxDrawing[3] = temp;
       }
 
       newFighterDraw = '';
     } else if (cornerSelected[0] != null && cornerSelected[1] != null) {
-      if (newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame][newFighterBoxSelected[0]][0] > newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame][newFighterBoxSelected[0]][2]) {
-        var temp = newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame][newFighterBoxSelected[0]][0];
-        newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame][newFighterBoxSelected[0]][0] = newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame][newFighterBoxSelected[0]][2];
-        newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame][newFighterBoxSelected[0]][2] = temp;
+      if (hitboxResize[0] > hitboxResize[2]) {
+        var temp = hitboxResize[0];
+        hitboxResize[0] = hitboxResize[2];
+        hitboxResize[2] = temp;
       }
 
-      if (newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame][newFighterBoxSelected[0]][1] > newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame][newFighterBoxSelected[0]][3]) {
-        var temp = newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame][newFighterBoxSelected[0]][1];
-        newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame][newFighterBoxSelected[0]][1] = newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame][newFighterBoxSelected[0]][3];
-        newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame][newFighterBoxSelected[0]][3] = temp;
+      if (hitboxResize[1] > hitboxResize[3]) {
+        var temp = hitboxResize[1];
+        hitboxResize[1] = hitboxResize[3];
+        hitboxResize[3] = temp;
       }
     }
 
@@ -2285,6 +2352,7 @@ document.addEventListener('mouseup', function(event) {
       } else {
         cornerSelected = [null, null];
       }
+
       if (event.clientX < 0.40625*canvas.width || event.clientX > 0.59375*canvas.width || event.clientY < canvas.height/4 || event.clientY > 3*canvas.height/4) {
         newFighterDraw = '';
       } else if (newFighterDraw == '') {
@@ -2305,7 +2373,17 @@ document.addEventListener('mouseup', function(event) {
             var hitbox = newFighterData['hurtboxes'][newFighterAction][newFighterFrame][i];
             if (event.clientX < hitbox[2]*canvas.width && event.clientX > hitbox[0]*canvas.width && event.clientY < hitbox[3]*canvas.height && event.clientY > hitbox[1]*canvas.height) {
               newFighterBoxSelected = [i, 'hurtbox'];
+              selected = true;
+              break;
             }
+          }
+        }
+
+        if (!selected && contains(newFighterView, 'groundbox') && newFighterData['groundboxes'][newFighterAction] && newFighterData['groundboxes'][newFighterAction][newFighterFrame]) {
+          var hitbox = newFighterData['groundboxes'][newFighterAction][newFighterFrame];
+          if (event.clientX < hitbox[2]*canvas.width && event.clientX > hitbox[0]*canvas.width && event.clientY < hitbox[3]*canvas.height && event.clientY > hitbox[1]*canvas.height) {
+            newFighterBoxSelected = [0, 'groundbox'];
+            selected = true;
           }
         }
       }
@@ -2332,64 +2410,81 @@ document.addEventListener('mouseup', function(event) {
 document.addEventListener('mousemove', function(event) {
   var letters = 0;
   var drawStyle = '';
+  var hitboxDrawing;
+  var hitboxResize;
   if (newFighterDraw.substring(0, 10) == 'hitboxDraw') {
     letters = 10;
     drawStyle = 'hitboxes';
+    hitboxDrawing = newFighterData[drawStyle][newFighterAction][newFighterFrame][newFighterDraw.substring(letters)];
   } else if (newFighterDraw.substring(0, 11) == 'hurtboxDraw') {
     letters = 11;
     drawStyle = 'hurtboxes';
+    hitboxDrawing = newFighterData[drawStyle][newFighterAction][newFighterFrame][newFighterDraw.substring(letters)];
+  } else if (newFighterDraw.substring(0, 13) == 'groundboxDraw') {
+    letters = 13;
+    drawStyle = 'groundboxes';
+    hitboxDrawing = newFighterData[drawStyle][newFighterAction][newFighterFrame];
+  }
+
+  if (newFighterBoxSelected[1] && newFighterBoxSelected[1] != '') {
+    if (newFighterBoxSelected[1] == 'groundbox') {
+      hitboxResize = newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame];
+    }
+    else {
+      hitboxResize = newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame][newFighterBoxSelected[0]];
+    }
   }
 
   if (drawStyle != '') {
-    newFighterData[drawStyle][newFighterAction][newFighterFrame][newFighterDraw.substring(letters)][2] = event.clientX/canvas.width;
-    newFighterData[drawStyle][newFighterAction][newFighterFrame][newFighterDraw.substring(letters)][3] = event.clientY/canvas.height;
+    hitboxDrawing[2] = event.clientX/canvas.width;
+    hitboxDrawing[3] = event.clientY/canvas.height;
 
     if (event.clientX < 0.40625*canvas.width) {
-      newFighterData[drawStyle][newFighterAction][newFighterFrame][newFighterDraw.substring(letters)][2] = 0.40625;
+      hitboxDrawing[2] = 0.40625;
     } else if (event.clientX > 0.59375*canvas.width) {
-      newFighterData[drawStyle][newFighterAction][newFighterFrame][newFighterDraw.substring(letters)][2] = 0.59375;
+      hitboxDrawing[2] = 0.59375;
     }
 
     if (event.clientY < canvas.height/4) {
-      newFighterData[drawStyle][newFighterAction][newFighterFrame][newFighterDraw.substring(letters)][3] = 0.25;
+      hitboxDrawing[3] = 0.25;
     } else if (event.clientY > 3*canvas.height/4) {
-      newFighterData[drawStyle][newFighterAction][newFighterFrame][newFighterDraw.substring(letters)][3] = 0.75;
+      hitboxDrawing[3] = 0.75;
     }
   } else if (cornerSelected[0] != null && cornerSelected[1] != null) {
-    newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame][newFighterBoxSelected[0]][cornerSelected[0]] += (event.clientX - mouseX)/canvas.width;
-    newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame][newFighterBoxSelected[0]][cornerSelected[1]] += (event.clientY - mouseY)/canvas.height;
+    hitboxResize[cornerSelected[0]] += (event.clientX - mouseX)/canvas.width;
+    hitboxResize[cornerSelected[1]] += (event.clientY - mouseY)/canvas.height;
 
-    if (newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame][newFighterBoxSelected[0]][cornerSelected[0]] < 0.40625) {
-      newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame][newFighterBoxSelected[0]][cornerSelected[0]] = 0.40625;
-    } else if (newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame][newFighterBoxSelected[0]][cornerSelected[0]] > 0.59375) {
-      newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame][newFighterBoxSelected[0]][cornerSelected[0]] = 0.59375;
+    if (hitboxResize[cornerSelected[0]] < 0.40625) {
+      hitboxResize[cornerSelected[0]] = 0.40625;
+    } else if (hitboxResize[cornerSelected[0]] > 0.59375) {
+      hitboxResize[cornerSelected[0]] = 0.59375;
     }
 
-    if (newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame][newFighterBoxSelected[0]][cornerSelected[1]] < 0.25) {
-      newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame][newFighterBoxSelected[0]][cornerSelected[1]] = 0.25;
-    } else if (newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame][newFighterBoxSelected[0]][cornerSelected[1]] > 0.75) {
-      newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame][newFighterBoxSelected[0]][cornerSelected[1]] = 0.75;
+    if (hitboxResize[cornerSelected[1]] < 0.25) {
+      hitboxResize[cornerSelected[1]] = 0.25;
+    } else if (hitboxResize[cornerSelected[1]] > 0.75) {
+      hitboxResize[cornerSelected[1]] = 0.75;
     }
   } else if (dragging) {
-    newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame][newFighterBoxSelected[0]][0] += (event.clientX - mouseX)/canvas.width;
-    newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame][newFighterBoxSelected[0]][2] += (event.clientX - mouseX)/canvas.width;
-    newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame][newFighterBoxSelected[0]][1] += (event.clientY - mouseY)/canvas.height;
-    newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame][newFighterBoxSelected[0]][3] += (event.clientY - mouseY)/canvas.height;
+    hitboxResize[0] += (event.clientX - mouseX)/canvas.width;
+    hitboxResize[2] += (event.clientX - mouseX)/canvas.width;
+    hitboxResize[1] += (event.clientY - mouseY)/canvas.height;
+    hitboxResize[3] += (event.clientY - mouseY)/canvas.height;
 
-    if (newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame][newFighterBoxSelected[0]][0] < 0.40625) {
-      newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame][newFighterBoxSelected[0]][2] = 0.40625+(newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame][newFighterBoxSelected[0]][2]-newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame][newFighterBoxSelected[0]][0]);
-      newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame][newFighterBoxSelected[0]][0] = 0.40625;
-    } else if (newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame][newFighterBoxSelected[0]][2] > 0.59375) {
-      newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame][newFighterBoxSelected[0]][0] = 0.59375+(newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame][newFighterBoxSelected[0]][0]-newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame][newFighterBoxSelected[0]][2]);
-      newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame][newFighterBoxSelected[0]][2] = 0.59375;
+    if (hitboxResize[0] < 0.40625) {
+      hitboxResize[2] = 0.40625+(hitboxResize[2]-hitboxResize[0]);
+      hitboxResize[0] = 0.40625;
+    } else if (hitboxResize[2] > 0.59375) {
+      hitboxResize[0] = 0.59375+(hitboxResize[0]-hitboxResize[2]);
+      hitboxResize[2] = 0.59375;
     }
 
-    if (newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame][newFighterBoxSelected[0]][1] < 0.25) {
-      newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame][newFighterBoxSelected[0]][3] = 0.25+(newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame][newFighterBoxSelected[0]][3]-newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame][newFighterBoxSelected[0]][1]);
-      newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame][newFighterBoxSelected[0]][1] = 0.25;
-    } else if (newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame][newFighterBoxSelected[0]][3] > 0.75) {
-      newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame][newFighterBoxSelected[0]][1] = 0.75+(newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame][newFighterBoxSelected[0]][1]-newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame][newFighterBoxSelected[0]][3]);
-      newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame][newFighterBoxSelected[0]][3] = 0.75;
+    if (hitboxResize[1] < 0.25) {
+      hitboxResize[3] = 0.25+(hitboxResize[3]-hitboxResize[1]);
+      hitboxResize[1] = 0.25;
+    } else if (hitboxResize[3] > 0.75) {
+      hitboxResize[1] = 0.75+(hitboxResize[1]-hitboxResize[3]);
+      hitboxResize[3] = 0.75;
     }
   }
 
@@ -2517,14 +2612,24 @@ document.addEventListener('keydown', function(event) {
       } else if(namingFighterRunSpeed && tempFighterRunSpeed.length > 0) {
         tempFighterRunSpeed = tempFighterRunSpeed.slice(0, -1);
       } else if(newFighterBoxSelected[0] != null) {
-        newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame].splice([newFighterBoxSelected[0]], 1);
+        if (newFighterBoxSelected[1] == 'groundbox') {
+          delete newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame];
+        } else {
+          newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame].splice([newFighterBoxSelected[0]], 1);
+        }
+
         newFighterBoxSelected[0] = null;
         newFighterBoxSelected[1] = '';
       }
       break;
     case 46: // Delete
       if(newFighterBoxSelected[0] != null) {
-        newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame].splice([newFighterBoxSelected[0]], 1);
+        if (newFighterBoxSelected[1] == 'groundbox') {
+          delete newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame];
+        } else {
+          newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame].splice([newFighterBoxSelected[0]], 1);
+        }
+
         newFighterBoxSelected[0] = null;
         newFighterBoxSelected[1] = '';
       }
