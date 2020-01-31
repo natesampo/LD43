@@ -1247,7 +1247,7 @@ setInterval(function() {
 	try {
 		for (var i in games) {
 			var game = games[i];
-			var players = Object.keys(game.players).length.toString();
+			var players = (Object.keys(game.players).length.toString()).slice(-1);
 			var host;
 
 			var index = 0;
@@ -1301,7 +1301,19 @@ setInterval(function() {
 		}
 
 		for (var i in lobby) {
-			io.to(lobby[i].id).emit('games', games);
+			// 2 digit # of games
+			var gamesSend = ('0' + Object.keys(games).length.toString()).slice(-2);
+
+			for (var j in games) {
+				// 2 digit id length, id, 2 digit name length, name, 1 digit visible, 1 digit started, 1 digit players
+				gamesSend += ('0' + games[j].id.length.toString()).slice(-2) + games[j].id + 
+					('0' + games[j].name.length.toString()).slice(-2) + games[j].name + 
+					((games[j].visible) ? '1' : '0') + 
+					((games[j].started) ? '1' : '0') + 
+					(Object.keys(games[j].players).length.toString()).slice(-1);
+			}
+
+			io.to(lobby[i].id).emit('games', gamesSend);
 		}
 	}
 	catch (e) {

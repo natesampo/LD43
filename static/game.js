@@ -1309,7 +1309,7 @@ function render() {
         if (gamez[lobbyButtons[i].id].started) {
           context.fillText('Ongoing', 2*canvas.width/5 + canvas.width/12.4, canvas.height/6 + i*(canvas.height/27) + canvas.height/70);      
         } else {
-          context.fillText(Object.keys(gamez[lobbyButtons[i].id].players).length + '/' + maxPlayers + ' Players', 2*canvas.width/5 + canvas.width/12.4, canvas.height/6 + i*(canvas.height/27) + canvas.height/70);      
+          context.fillText(gamez[lobbyButtons[i].id].players + '/' + maxPlayers + ' Players', 2*canvas.width/5 + canvas.width/12.4, canvas.height/6 + i*(canvas.height/27) + canvas.height/70);      
         }
       }
     }
@@ -1916,8 +1916,30 @@ socket.on('state', function(gameString) {
   gamez = null;
 });
 
-socket.on('games', function(games) {
-  gamez = games;
+socket.on('games', function(gamesString) {
+  gamez = {};
+
+  var game_count = +gamesString.substring(0, 2);
+  var index = 2;
+
+  for (var i=0; i<game_count; i++) {
+    var length = +gamesString.substring(index, index + 2);
+    index += 2;
+    var curr_game = gamesString.substring(index, index + length);
+    gamez[curr_game] = {};
+    index += length;
+    var length = +gamesString.substring(index, index + 2);
+    index += 2;
+    gamez[curr_game]['name'] = gamesString.substring(index, index + length);
+    index += length;
+    gamez[curr_game]['visible'] = !!+gamesString.substring(index, index + 1);
+    index += 1;
+    gamez[curr_game]['started'] = !!+gamesString.substring(index, index + 1);
+    index += 1;
+    gamez[curr_game]['players'] = +gamesString.substring(index, index + 1);
+    index += 1;
+  }
+
   player = null;
   game = null;
 
@@ -1925,9 +1947,9 @@ socket.on('games', function(games) {
     lobbyButtons.splice(j, 1);
   }
 
-  for (var i in games) {
-    if (games[i].visible) {
-      lobbyButtons.push(new Button(i.toString(), function() {return 3*canvas.width/5 - this.getWidth() - canvas.width/480;}, function() {for (var k=0; k<lobbyButtons.length; k++) {if (lobbyButtons[k].id == this.id) {break;}} return canvas.height/6 + k*(this.getHeight()*2);}, function() {return canvas.width/20;}, function() {return canvas.height/54}, 1, function() {socket.emit('joinGame', this.id);}, function() {return !games[this.id].started && (Object.keys(games[this.id].players).length < maxPlayers);}, function() {return 'white';}, function() {return ['Join Game'];}, 'black', function() {return (canvas.width/137.1429).toString() + 'px Arial';}, function() {return null;}, function() {return true;}));
+  for (var i in gamez) {
+    if (gamez[i].visible) {
+      lobbyButtons.push(new Button(i.toString(), function() {return 3*canvas.width/5 - this.getWidth() - canvas.width/480;}, function() {for (var k=0; k<lobbyButtons.length; k++) {if (lobbyButtons[k].id == this.id) {break;}} return canvas.height/6 + k*(this.getHeight()*2);}, function() {return canvas.width/20;}, function() {return canvas.height/54}, 1, function() {socket.emit('joinGame', this.id);}, function() {return !gamez[this.id].started && gamez[this.id].players < maxPlayers;}, function() {return 'white';}, function() {return ['Join Game'];}, 'black', function() {return (canvas.width/137.1429).toString() + 'px Arial';}, function() {return null;}, function() {return true;}));
     }
   }
 });
