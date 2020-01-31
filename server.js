@@ -919,19 +919,17 @@ setInterval(function() {
 			    	player.lastAttack -= (60/gameSpeed);
 			    }
 
-			    if(player && player.fighter && !player.grounded && ((game.started && stage && stage.hitboxes) || (!game.started && previewStage && previewStage.hitboxes))) {
+			    if(player && player.fighter && !player.grounded && player.velY >= 0 && ((game.started && stage && stage.hitboxes) || (!game.started && previewStage && previewStage.hitboxes))) {
 			    	var groundbox = player.fighter.groundboxes[player.action][frame];
 		        	for (var j in ((game.started) ? stage.hitboxes : previewStage.hitboxes)) {
 			          	var hitbox2 = ((game.started) ? stage.hitboxes[j] : previewStage.hitboxes[j]);
 			          	if (checkHit([player.x + groundbox[0]*spriteWidth, player.y + groundbox[1]*spriteHeight, player.x + groundbox[2]*spriteWidth, player.y + groundbox[3]*spriteHeight], hitbox2)) {
 			            	if(player.x + groundbox[0]*spriteWidth > hitbox2[0]) {
 			              		if(player.x + groundbox[2]*spriteWidth < hitbox2[2]) {
-			                		//if(hitbox1 == 'leftleg' || hitbox1 == 'rightleg') {
 		                 	 		player.y = hitbox2[1] - groundbox[3]*spriteHeight;
 									player.velY = 0;
 									player.grounded = true;
 									player.jumps = player.fighter.jumps;
-			                		//}
 			              		} else {
 			                		if (hitbox2[2] - groundbox[0]*spriteWidth != null) {
 							 			if (player.velX < 0) {
@@ -948,7 +946,7 @@ setInterval(function() {
 			            	}
 			          	}
 		        	}
-			    } else if(player && player.fighter && player.grounded && ((game.started && stage && stage.hitboxes) || (!game.started && previewStage && previewStage.hitboxes))) {
+			    } else if(player && player.fighter && player.grounded && player.velY >= 0 && ((game.started && stage && stage.hitboxes) || (!game.started && previewStage && previewStage.hitboxes))) {
 			    	player.grounded = false;
 			    	var groundbox = player.fighter.groundboxes[player.action][frame];
 		        	for (var j in ((game.started) ? stage.hitboxes : previewStage.hitboxes)) {
