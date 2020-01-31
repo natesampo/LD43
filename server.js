@@ -18,6 +18,7 @@ var maxCollisionDistance = 0.1;
 var rawData = {};
 var spriteData = {};
 var fighters = [];
+var projectiles = [];
 var stages = [];
 var names = ['Tony', 'Vinny', 'Bruno', 'Frank', 'Mario', 'Vito', 'Al', 'Gerardo', 'Angelo', 'Giovanni', 'Salvatore', 'Carmine', 'Fabrizio', 'Dominic', 'Alphonse', 'Vic', 'Giuseppe', 'Joey', 'Tommaso', 'Johnny', 'Vincent', 'Nicolo', 'Michael', 'Phil', 'Victor', 'Vincenzo', 'Luigi', 'Stefano', 'Giacomo', 'Santo', 'Ignazio'];
 var actions = ['idle', 'stun', 'nair', 'neutral', 'run', 'airmove', 'forward', 'fair', 'uair', 'bair', 'dair', 'dtilt'];
@@ -95,23 +96,21 @@ class Stage {
 var previewStage = new Stage('preview', [[0.4, 0.7, 0.9, 0.77]], [[0.45, 0.5]], [0.2, 0, 1, 0.85]);
 
 class Projectile {
-	constructor(id, name, facing, owner, x, y, width, height, velocity, weight, animationTime, hitsLeft, frames, hitboxes, attacks) {
-		this.id = id;
+	constructor(name, facing, x, y, width, height, velX, velY, weight, animationTime, hitsLeft, frames, hitboxes, attacks) {
 		this.name = name;
 		this.facing = facing;
-		this.owner = owner;
 		this.x = x;
 		this.y = y;
 		this.width = width;
 		this.height = height;
-		this.velocity = velocity;
+		this.velX = velX;
+		this.velY = velY;
 		this.weight = weight;
 		this.animationTime = animationTime;
 		this.hitsLeft = hitsLeft;
 		this.frames = frames;
 		this.hitboxes = hitboxes;
 		this.attacks = attacks;
-		this.frame = 0;
 	}
 }
 
@@ -156,6 +155,8 @@ fs.readdir('static/projectiles', function(err, items) {
 		var temprawData = fs.readFileSync('static/projectiles/' + items[i], 'utf8');
 
 		rawData['projectiles'][items[i].slice(0, -4)] = splitData(temprawData);
+
+		projectiles.push(createProjectile(rawData['projectiles'][items[i].slice(0, -4)]));
 
 		spriteData['projectiles'][items[i].slice(0, -4)] = '/static/sprites/projectiles/' + items[i].slice(0, -4) + '/' + items[i].slice(0, -4) + '.png';
 	}
@@ -207,10 +208,8 @@ spriteData['menu']['kick'] = '/static/sprites/menu/kick.png';
 spriteData['menu']['play'] = '/static/sprites/menu/play.png';
 spriteData['menu']['pause'] = '/static/sprites/menu/pause.png';
 
-function shootProjectile(user, projectile) {
-	var tempProjectile = ((projectile.length > 5 && projectile.substring(0, 5) == 'name?') ? splitData(projectile.replace(/\\/g, '\n').replace(/\?/g, '@').replace(/\`/g, ';').replace(/\~/g, ':').replace(/\+/g, ',').replace(/\$/g, '=').replace(/\*/, '_')) : rawData['projectiles'][projectile]);
-
-	var rawDataArray = tempProjectile['hitboxes'].split('_');
+function createProjectile(data) {
+	var rawDataArray = data['hitboxes'].split('_');
 	var hitboxes = {};
 	var tempBox;
 	for (var i=0; i<rawDataArray.length; i++) {
@@ -222,7 +221,7 @@ function shootProjectile(user, projectile) {
 		}
 	}
 
-	rawDataArray = tempProjectile['attacks'].split('_');
+	rawDataArray = data['attacks'].split('_');
 	var attacks = {};
 	for (var i=0; i<rawDataArray.length; i++) {
 		tempBox = rawDataArray[i].split('=');
@@ -232,22 +231,49 @@ function shootProjectile(user, projectile) {
 		}
 	}
 
-	user.projectiles.push(new Projectile(
-		user.projectileID,
-		tempProjectile['name'],
-		((tempProjectile['facing'] == 'same') ? user.facing : ((user.facing == 'right') ? 'left' : 'right')),
-		user.id,
-		((tempProjectile['x'].split(';').length>1 && tempProjectile['x'].split(';')[0] == 'player') ? user.x + parseFloat(tempProjectile['x'].split(';')[1]) + user.fighter.spriteWidth/4 + ((user.facing == 'right') ? 0 : parseFloat(tempProjectile['width'])) : parseFloat(tempProjectile['x'])),
-		((tempProjectile['y'].split(';').length>1 && tempProjectile['y'].split(';')[0] == 'player') ? user.y + parseFloat(tempProjectile['y'].split(';')[1]) + user.fighter.spriteHeight/4 : parseFloat(tempProjectile['y'])),
-		parseFloat(tempProjectile['width']),
-		parseFloat(tempProjectile['height']),
-		[((((tempProjectile['facing'] == 'same') ? user.facing : ((user.facing == 'right') ? 'left' : 'right')) == 'left') ? parseFloat(tempProjectile['velX'].split(':')[0]) : parseFloat(tempProjectile['velX'].split(':')[1]))*(60/gameSpeed), parseFloat(tempProjectile['velY'])*(60/gameSpeed)],
-		parseFloat(tempProjectile['weight']),
-		parseFloat(tempProjectile['animationTime']),
-		parseFloat(tempProjectile['hitsLeft']),
-		parseFloat(tempProjectile['frames']),
+	return new Projectile(
+		data['name'],
+		data['facing'],
+		data['x'],
+		data['y'],
+		parseFloat(data['width']),
+		parseFloat(data['height']),
+		data['velX'],
+		data['velY'],
+		parseFloat(data['weight']),
+		parseFloat(data['animationTime']),
+		parseFloat(data['hitsLeft']),
+		parseFloat(data['frames']),
 		hitboxes,
-		attacks));
+		attacks);
+}
+
+function shootProjectile(user, projectile) {
+	var tempProjectile;
+	var index = -1;
+	for (var i in projectiles) {
+		if (projectiles[i].name == projectile) {
+			tempProjectile = projectiles[i];
+			index = i;
+			break;
+		}
+	}
+
+	if (!tempProjectile) {
+		tempProjectile = splitData(projectile.replace(/\\/g, '\n').replace(/\?/g, '@').replace(/\`/g, ';').replace(/\~/g, ':').replace(/\+/g, ',').replace(/\$/g, '=').replace(/\*/, '_'));
+	}
+
+	user.projectiles.push({
+		'id': user.projectileID,
+		'data': tempProjectile,
+		'facing': ((tempProjectile['facing'] == 'same') ? user.facing : ((user.facing == 'right') ? 'left' : 'right')),
+		'owner': user.id,
+		'x': ((tempProjectile['x'].split(';').length>1 && tempProjectile['x'].split(';')[0] == 'player') ? user.x + parseFloat(tempProjectile['x'].split(';')[1]) + user.fighter.spriteWidth/4 + ((user.facing == 'right') ? 0 : parseFloat(tempProjectile['width'])) : parseFloat(tempProjectile['x'])),
+		'y': ((tempProjectile['y'].split(';').length>1 && tempProjectile['y'].split(';')[0] == 'player') ? user.y + parseFloat(tempProjectile['y'].split(';')[1]) + user.fighter.spriteHeight/4 : parseFloat(tempProjectile['y'])),
+		'velocity': [((((tempProjectile['facing'] == 'same') ? user.facing : ((user.facing == 'right') ? 'left' : 'right')) == 'left') ? parseFloat(tempProjectile['velX'].split(':')[0]) : parseFloat(tempProjectile['velX'].split(':')[1]))*(60/gameSpeed), parseFloat(tempProjectile['velY'])*(60/gameSpeed)],
+		'hitsLeft': tempProjectile['hitsLeft'],
+		'frame': 0,
+		'index': index});
 
 	user.projectileID++;
 }
@@ -411,7 +437,7 @@ io.on('connection', function(socket) {
 		totalPlayers++;
 		lobby[socket.id] = users[socket.id];
 
-		io.to(socket.id).emit('data', spriteData, fighters, stages);
+		io.to(socket.id).emit('data', spriteData, fighters, projectiles, stages);
 	});
 	socket.on('startGame', function() {
 		try {
@@ -974,23 +1000,23 @@ setInterval(function() {
 
 		      	for (var a in player.projectiles) {
 		        	var projectile = player.projectiles[a];
-		        	projectile.frame = (projectile.frame + (60/gameSpeed))%(projectile.animationTime*projectile.frames);
-		        	var projectileFrame = Math.floor(projectile.frame/projectile.animationTime).toString();
-		        	for (var i in projectile.hitboxes[projectileFrame]) {
-		          		var hitbox1 = ((projectile.facing == 'left') ? flipHitbox(projectile.hitboxes[projectileFrame][i]['hitbox']) : projectile.hitboxes[projectileFrame][i]['hitbox']);
+		        	projectile.frame = (projectile.frame + (60/gameSpeed))%(projectile.data.animationTime*projectile.data.frames);
+		        	var projectileFrame = Math.floor(projectile.frame/projectile.data.animationTime).toString();
+		        	for (var i in projectile.data.hitboxes[projectileFrame]) {
+		          		var hitbox1 = ((projectile.facing == 'left') ? flipHitbox(projectile.data.hitboxes[projectileFrame][i]['hitbox']) : projectile.data.hitboxes[projectileFrame][i]['hitbox']);
 		          		for (var j in game.players) {
 		            		var otherPlayer = game.players[j];
-		            		if (otherPlayer.id != player.id && getDistance(projectile.x, projectile.y, otherPlayer.x, otherPlayer.y) < maxCollisionDistance && !contains(projectile.hitboxes[projectileFrame][i]['alreadyHit'], otherPlayer.id)) {
+		            		if (otherPlayer.id != player.id && getDistance(projectile.x, projectile.y, otherPlayer.x, otherPlayer.y) < maxCollisionDistance && !contains(projectile.data.hitboxes[projectileFrame][i]['alreadyHit'], otherPlayer.id)) {
 		              			var otherFrame = Math.floor(otherPlayer.animationFrame/otherPlayer.fighter.animationTime).toString();
 		              			for (var o in otherPlayer.fighter.hurtboxes[otherPlayer.action][otherFrame]) {
 		                			var hitbox2 = ((otherPlayer.facing == 'left') ? flipHitbox(otherPlayer.fighter.hurtboxes[otherPlayer.action][otherFrame][o]) : otherPlayer.fighter.hurtboxes[otherPlayer.action][otherFrame][o]);
-		                			if (checkHit([projectile.x + hitbox1[0]*projectile.width, projectile.y + hitbox1[1]*projectile.height, projectile.x + hitbox1[2]*projectile.width, projectile.y + hitbox1[3]*projectile.height], [otherPlayer.x + hitbox2[0]*spriteWidth, otherPlayer.y + hitbox2[1]*spriteHeight, otherPlayer.x + hitbox2[2]*spriteWidth, otherPlayer.y + hitbox2[3]*spriteHeight])) {
+		                			if (checkHit([projectile.x + hitbox1[0]*projectile.data.width, projectile.y + hitbox1[1]*projectile.data.height, projectile.x + hitbox1[2]*projectile.data.width, projectile.y + hitbox1[3]*projectile.data.height], [otherPlayer.x + hitbox2[0]*spriteWidth, otherPlayer.y + hitbox2[1]*spriteHeight, otherPlayer.x + hitbox2[2]*spriteWidth, otherPlayer.y + hitbox2[3]*spriteHeight])) {
 										var cont = false;
-										for (var l in projectile.hitboxes) {
-											var checkFrame = projectile.hitboxes[l];
+										for (var l in projectile.data.hitboxes) {
+											var checkFrame = projectile.data.hitboxes[l];
 											for (var m in checkFrame) {
 											    var id = checkFrame[m]['id'];
-											    if (id == projectile.hitboxes[projectileFrame][i]['id'] && !contains(checkFrame[m]['alreadyHit'], otherPlayer.id)) {
+											    if (id == projectile.data.hitboxes[projectileFrame][i]['id'] && !contains(checkFrame[m]['alreadyHit'], otherPlayer.id)) {
 											        checkFrame[m]['alreadyHit'].push(otherPlayer.id);
 											        cont = true;
 											    }
@@ -998,10 +1024,10 @@ setInterval(function() {
 										}
 
 										if (cont) {
-											otherPlayer.launch += projectile.attacks[projectile.hitboxes[projectileFrame][i]['id']]['damage'];
-											otherPlayer.velX = ((projectile.facing == 'left') ? -1 : 1) * ((otherPlayer.launch/30)*(otherPlayer.launch/30)*projectile.attacks[projectile.hitboxes[projectileFrame][i]['id']]['launch'][0]/otherPlayer.fighter.weight + 10*projectile.attacks[projectile.hitboxes[projectileFrame][i]['id']]['launch'][0]/otherPlayer.fighter.weight);
-											otherPlayer.velY = (otherPlayer.launch/30)*(otherPlayer.launch/30)*projectile.attacks[projectile.hitboxes[projectileFrame][i]['id']]['launch'][1]/otherPlayer.fighter.weight + 10*projectile.attacks[projectile.hitboxes[projectileFrame][i]['id']]['launch'][1]/otherPlayer.fighter.weight;
-											otherPlayer.stun += (projectile.attacks[projectile.hitboxes[projectileFrame][i]['id']]['stun']*150) + otherPlayer.launch;
+											otherPlayer.launch += projectile.data.attacks[projectile.data.hitboxes[projectileFrame][i]['id']]['damage'];
+											otherPlayer.velX = ((projectile.facing == 'left') ? -1 : 1) * ((otherPlayer.launch/30)*(otherPlayer.launch/30)*projectile.data.attacks[projectile.data.hitboxes[projectileFrame][i]['id']]['launch'][0]/otherPlayer.fighter.weight + 10*projectile.data.attacks[projectile.data.hitboxes[projectileFrame][i]['id']]['launch'][0]/otherPlayer.fighter.weight);
+											otherPlayer.velY = (otherPlayer.launch/30)*(otherPlayer.launch/30)*projectile.data.attacks[projectile.data.hitboxes[projectileFrame][i]['id']]['launch'][1]/otherPlayer.fighter.weight + 10*projectile.data.attacks[projectile.data.hitboxes[projectileFrame][i]['id']]['launch'][1]/otherPlayer.fighter.weight;
+											otherPlayer.stun += (projectile.data.attacks[projectile.data.hitboxes[projectileFrame][i]['id']]['stun']*150) + otherPlayer.launch;
 											otherPlayer.facing = ((projectile.facing == 'left') ? 'right' : 'left');
 											projectile.hitsLeft -= 1;
 											if (projectile.hitsLeft <= 0) {
@@ -1022,11 +1048,11 @@ setInterval(function() {
 
 			    for (var i in player.projectiles) {
 			      	var projectile = player.projectiles[i];
-			      	for (var j in projectile.hitboxes[projectileFrame]) {
-			        	var hitbox1 = ((projectile.facing == 'left') ? flipHitbox(projectile.hitboxes[projectileFrame][j]['hitbox']) : projectile.hitboxes[projectileFrame][j]['hitbox']);
+			      	for (var j in projectile.data.hitboxes[projectileFrame]) {
+			        	var hitbox1 = ((projectile.facing == 'left') ? flipHitbox(projectile.data.hitboxes[projectileFrame][j]['hitbox']) : projectile.data.hitboxes[projectileFrame][j]['hitbox']);
 			        	for (var o in ((game.started) ? stage.hitboxes : previewStage.hitboxes)) {
 			          		var hitbox2 = ((game.started) ? stage.hitboxes[o] : previewStage.hitboxes[o]);
-			          		if (checkHit([projectile.x + hitbox1[0]*projectile.width, projectile.y + hitbox1[1]*projectile.height, projectile.x + hitbox1[2]*projectile.width, projectile.y + hitbox1[3]*projectile.height], hitbox2)) {
+			          		if (checkHit([projectile.x + hitbox1[0]*projectile.data.width, projectile.y + hitbox1[1]*projectile.data.height, projectile.x + hitbox1[2]*projectile.data.width, projectile.y + hitbox1[3]*projectile.data.height], hitbox2)) {
 			            		for (var i in player.projectiles) {
 									if (player.projectiles[i].id == projectile.id) {
 										player.projectiles.splice(i, 1);
@@ -1042,7 +1068,7 @@ setInterval(function() {
 					projectile = player.projectiles[l];
 					projectile.x += projectile.velocity[0];
 					projectile.y += projectile.velocity[1];
-					projectile.velocity[1] += projectile.weight*0.00075*(60/gameSpeed)*(60/gameSpeed);
+					projectile.velocity[1] += projectile.data.weight*0.00075*(60/gameSpeed)*(60/gameSpeed);
 
 					if (checkOffstage(projectile.x, projectile.y, ((game.started) ? game.stage : previewStage))) {
 						player.projectiles.splice(l, 1);
@@ -1234,7 +1260,7 @@ setInterval(function() {
 					host = index;
 				}
 
-				// 1 digit number of players, 2 digit id length, id, 2 digit name length, name, 1 digit win, 1 digit lose, 2 digit action id, 2 digit animation frame, 2 digit fighter id, 1 digit sprite, 1 digit stock, 6 digit x, 6 digit y, 1 digit facing, 3 digit launch
+				// 1 digit number of players, 2 digit id length, id, 2 digit name length, name, 1 digit win, 1 digit lose, 2 digit action id, 2 digit animation frame, 2 digit fighter id, 1 digit sprite, 1 digit stock, 6 digit x, 6 digit y, 1 digit facing, 3 digit launch, 2 digit # of projectiles
 				players += ('0' + player.id.length.toString()).slice(-2) + player.id + 
 					('0' + player.name.length.toString()).slice(-2) + player.name + 
 					((player.won) ? '1' : '0') + 
@@ -1247,7 +1273,19 @@ setInterval(function() {
 					(player.x + 4).toFixed(4).slice(-6) + 
 					(player.y + 4).toFixed(4).slice(-6) + 
 					((player.facing == 'right') ? '1' : '0') + 
-					('00' + Math.floor(player.launch).toString()).slice(-3);
+					('00' + Math.floor(player.launch).toString()).slice(-3) + 
+					('0' + player.projectiles.length.toString()).slice(-2);
+
+				for (var k in player.projectiles) {
+					var projectile = player.projectiles[k];
+
+					// 2 digit projectile index, 2 digit frame, 6 digit x, 6 digit y, 1 digit facing
+					players += ('0' + projectile.index.toString()).slice(-2) + 
+						('0' + projectile.frame.toString()).slice(-2) + 
+						(projectile.x + 4).toFixed(4).slice(-6) + 
+						(projectile.y + 4).toFixed(4).slice(-6) + 
+						((projectile.facing == 'right') ? '1' : '0');
+				}
 
 				index++;
 			}

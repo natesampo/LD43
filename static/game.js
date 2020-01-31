@@ -161,6 +161,7 @@ var gamez;
 var numPlayer;
 var data;
 var fighters;
+var projectiles;
 var stages;
 
 class Button {
@@ -1085,14 +1086,14 @@ function render() {
 
         for (var i in tempPlayer.projectiles) {
           var projectile = tempPlayer.projectiles[i];
-          var tempSheet = ((imgs['demo'] && demo) ? imgs['demo'][tempPlayer.sprite][projectile.name] : imgs['projectiles'][projectile.name]);
-          drawProjectileFrame = Math.floor(projectile.frame/projectile.animationTime);
+          var tempSheet = ((imgs['demo'] && demo) ? imgs['demo'][tempPlayer.sprite][projectiles[projectile.index].name] : imgs['projectiles'][projectiles[projectile.index].name]);
+          drawProjectileFrame = Math.floor(projectile.frame/projectiles[projectile.index].animationTime);
           if (projectile.facing == 'right') {
-            context.drawImage(tempSheet, drawProjectileFrame*(tempSheet.width/projectile.frames), 0, tempSheet.width/projectile.frames, tempSheet.height, projectile.x*canvas.width, projectile.y*canvas.height, projectile.width*canvas.width, projectile.height*canvas.height);
+            context.drawImage(tempSheet, drawProjectileFrame*(tempSheet.width/projectiles[projectile.index].frames), 0, tempSheet.width/projectiles[projectile.index].frames, tempSheet.height, projectile.x*canvas.width, projectile.y*canvas.height, projectiles[projectile.index].width*canvas.width, projectiles[projectile.index].height*canvas.height);
           } else {
             context.translate(canvas.width, 0);
             context.scale(-1, 1);
-            context.drawImage(tempSheet, drawProjectileFrame*(tempSheet.width/projectile.frames), 0, tempSheet.width/projectile.frames, tempSheet.height, canvas.width - projectile.x*canvas.width - projectile.width, projectile.y*canvas.height, projectile.width*canvas.width, projectile.height*canvas.height);
+            context.drawImage(tempSheet, drawProjectileFrame*(tempSheet.width/projectiles[projectile.index].frames), 0, tempSheet.width/projectiles[projectile.index].frames, tempSheet.height, canvas.width - projectile.x*canvas.width - projectiles[projectile.index].width, projectile.y*canvas.height, projectiles[projectile.index].width*canvas.width, projectiles[projectile.index].height*canvas.height);
             context.setTransform(1, 0, 0, 1, 0, 0);
           }
         }
@@ -1141,12 +1142,12 @@ function render() {
 
           for (var i in tempPlayer.projectiles) {
             var projectile = tempPlayer.projectiles[i];
-            drawProjectileFrame = Math.floor(projectile.frame/projectile.animationTime);
-            for (var j in projectile.hitboxes[drawProjectileFrame]) {
-              var hitbox = ((projectile.facing == 'left') ? flipHitbox(projectile.hitboxes[drawProjectileFrame][j]['hitbox']) : projectile.hitboxes[drawProjectileFrame][j]['hitbox']);
+            drawProjectileFrame = Math.floor(projectile.frame/projectiles[projectile.index].animationTime);
+            for (var j in projectiles[projectile.index].hitboxes[drawProjectileFrame]) {
+              var hitbox = ((projectile.facing == 'left') ? flipHitbox(projectiles[projectile.index].hitboxes[drawProjectileFrame][j]['hitbox']) : projectiles[projectile.index].hitboxes[drawProjectileFrame][j]['hitbox']);
               context.strokeStyle = 'rgba(0, 0, 255, 1)';
               context.beginPath();
-              context.rect(projectile.x*canvas.width + hitbox[0]*projectile.width*canvas.width, projectile.y*canvas.height + hitbox[1]*projectile.height*canvas.height, (hitbox[2] - hitbox[0])*projectile.width*canvas.width, (hitbox[3] - hitbox[1])*projectile.height*canvas.height);
+              context.rect(projectile.x*canvas.width + hitbox[0]*projectiles[projectile.index].width*canvas.width, projectile.y*canvas.height + hitbox[1]*projectiles[projectile.index].height*canvas.height, (hitbox[2] - hitbox[0])*projectiles[projectile.index].width*canvas.width, (hitbox[3] - hitbox[1])*projectiles[projectile.index].height*canvas.height);
               context.stroke();
               context.closePath();
             }
@@ -1828,9 +1829,10 @@ function render() {
   }
 }
 
-socket.on('data', function(getData, getFighters, getStages) {
+socket.on('data', function(getData, getFighters, getProjectiles, getStages) {
   data = getData;
   fighters = getFighters;
+  projectiles = getProjectiles;
   stages = getStages;
   loadImages();
 
@@ -1892,6 +1894,19 @@ socket.on('state', function(gameString) {
     index += 1;
     game['players'][i]['launch'] = +gameString.substring(index, index + 3);
     index += 3;
+    game['players'][i]['projectiles'] = [];
+    length = +gameString.substring(index, index + 2);
+    index += 2;
+    for (var j=0; j<length; j++) {
+      game['players'][i]['projectiles'].push({
+        'index': +gameString.substring(index, index + 2),
+        'frame': +gameString.substring(index + 2, index + 4),
+        'x': +gameString.substring(index + 4, index + 10) - 4,
+        'y': +gameString.substring(index + 10, index + 16) - 4,
+        'facing': ((+gameString.substring(index + 16, index + 17)) ? 'right' : 'left')});
+
+      index += 17;
+    }
 
     if(game['players'][i]['id'] == socket.id) {
       player = game['players'][i];
