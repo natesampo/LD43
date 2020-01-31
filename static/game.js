@@ -161,6 +161,7 @@ var gamez;
 var numPlayer;
 var data;
 var fighters;
+var stages;
 
 class Button {
   constructor(id, getX, getY, getWidth, getHeight, lineWidth, onClick, canClick, getColor, getText, textColor, getFont, getImage, getVisible) {
@@ -302,10 +303,10 @@ canvas.style.left = 0;
 var context = canvas.getContext('2d');
 context.imageSmoothingEnabled = false;
 
-function getFighterIndex(name) {
+function getFighterFromName(name) {
   for (var i in fighters) {
     if (fighters[i].name == name) {
-      return i;
+      return fighters[i];
     }
   }
 }
@@ -1065,8 +1066,7 @@ function render() {
       for (var drawPlayer in ((game.started) ? game.players : [player])) {
         numPlayer ++;
         var tempPlayer = ((game.started) ? game.players[drawPlayer] : player);
-        var tempFighter = fighters[getFighterIndex(tempPlayer.fighter)];
-        console.log(tempFighter);
+
         drawFrame = Math.floor(tempPlayer.animationFrame/tempPlayer.fighter.animationTime).toString();
         spriteWidth = tempPlayer.fighter.spriteWidth*canvas.width;
         spriteHeight = tempPlayer.fighter.spriteHeight*canvas.height;
@@ -1828,9 +1828,10 @@ function render() {
   }
 }
 
-socket.on('data', function(getData, getFighters) {
+socket.on('data', function(getData, getFighters, getStages) {
   data = getData;
   fighters = getFighters;
+  stages = getStages;
   loadImages();
 
   var ind = 0;
@@ -1843,9 +1844,60 @@ socket.on('data', function(getData, getFighters) {
   }
 });
 
-socket.on('state', function(gameObject) {
-  player = gameObject.players[socket.id];
-  game = gameObject;
+socket.on('state', function(gameString) {
+  player = {};
+  game = {};
+
+  var length = +gameString.substring(0, 2);
+  var index = 2;
+  game['name'] = gameString.substring(index, index + length);
+  index += length;
+  game['started'] = !!+gameString.substring(index, index + 1);
+  index += 1;
+  game['stage'] = stages[+gameString.substring(index, index + 2)];
+  index += 2;
+  game['host'] = +gameString.substring(index, index + 1);
+  index += 1;
+  var player_count = +gameString.substring(index, index + 1);
+  index += 1;
+  game['players'] = [];
+  for (var i=0; i<player_count; i++) {
+    length = +gameString.substring(index, index + 2);
+    index += 2;
+    game['players'].push({'id': gameString.substring(index, index + length)});
+    index += length;
+    length = +gameString.substring(index, index + 2);
+    index += 2;
+    game['players'][i]['name'] = gameString.substring(index, index + length);
+    index += length;
+    game['players'][i]['win'] = !!+gameString.substring(index, index + 1);
+    index += 1;
+    game['players'][i]['lose'] = !!+gameString.substring(index, index + 1);
+    index += 1;
+    game['players'][i]['action'] = actions[+gameString.substring(index, index + 2)];
+    index += 2;
+    game['players'][i]['animationFrame'] = +gameString.substring(index, index + 2);
+    index += 2;
+    game['players'][i]['fighter'] = fighters[+gameString.substring(index, index + 2)];
+    index += 2;
+    game['players'][i]['sprite'] = +gameString.substring(index, index + 1);
+    index += 1;
+    game['players'][i]['stock'] = +gameString.substring(index, index + 1);
+    index += 1;
+    game['players'][i]['x'] = +gameString.substring(index, index + 6) - 4;
+    index += 6;
+    game['players'][i]['y'] = +gameString.substring(index, index + 6) - 4;
+    index += 6;
+    game['players'][i]['facing'] = ((+gameString.substring(index, index + 1)) ? 'right' : 'left');
+    index += 1;
+    game['players'][i]['launch'] = +gameString.substring(index, index + 3);
+    index += 3;
+
+    if(game['players'][i]['id'] == socket.id) {
+      player = game['players'][i];
+    }
+  }
+
   gamez = null;
 });
 

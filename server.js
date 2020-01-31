@@ -20,6 +20,7 @@ var spriteData = {};
 var fighters = [];
 var stages = [];
 var names = ['Tony', 'Vinny', 'Bruno', 'Frank', 'Mario', 'Vito', 'Al', 'Gerardo', 'Angelo', 'Giovanni', 'Salvatore', 'Carmine', 'Fabrizio', 'Dominic', 'Alphonse', 'Vic', 'Giuseppe', 'Joey', 'Tommaso', 'Johnny', 'Vincent', 'Nicolo', 'Michael', 'Phil', 'Victor', 'Vincenzo', 'Luigi', 'Stefano', 'Giacomo', 'Santo', 'Ignazio'];
+var actions = ['idle', 'stun', 'nair', 'neutral', 'run', 'airmove', 'forward', 'fair', 'uair', 'bair', 'dair', 'dtilt'];
 
 app.use('/', express.static(__dirname + '/'));
 
@@ -50,6 +51,30 @@ function setValue(val) {
 
 function getDistance(x0, y0, x1, y1) {
 	return Math.sqrt((x1-x0)*(x1-x0) + (y1-y0)*(y1-y0));
+}
+
+function getActionID(action) {
+	for (var i in actions) {
+		if (actions[i] == action) {
+			return i;
+		}
+	}
+}
+
+function getFighterID(fighter) {
+	for (var i in fighters) {
+		if (fighters[i].name == fighter) {
+			return i;
+		}
+	}
+}
+
+function getStageID(stage) {
+	for (var i in stages) {
+		if (stages[i].name == stage) {
+			return i;
+		}
+	}
 }
 
 class Stage {
@@ -386,7 +411,7 @@ io.on('connection', function(socket) {
 		totalPlayers++;
 		lobby[socket.id] = users[socket.id];
 
-		io.to(socket.id).emit('data', spriteData, fighters);
+		io.to(socket.id).emit('data', spriteData, fighters, stages);
 	});
 	socket.on('startGame', function() {
 		try {
@@ -917,7 +942,6 @@ setInterval(function() {
 			        	for (var j in game.players) {
 			          		var otherPlayer = game.players[j];
 			          		if (otherPlayer.id != player.id && getDistance(player.x, player.y, otherPlayer.x, otherPlayer.y) < maxCollisionDistance && !contains(player.fighter.hitboxes[player.action][frame][i]['alreadyHit'], otherPlayer.id)) {
-			            		console.log(getDistance(player.x, player.y, otherPlayer.x, otherPlayer.y));
 			            		var otherFrame = Math.floor(otherPlayer.animationFrame/otherPlayer.fighter.animationTime).toString();
 			            		for (var o in otherPlayer.fighter.hurtboxes[otherPlayer.action][otherFrame]) {
 			        				var hitbox2 = ((player.facing == 'left') ? flipHitbox(otherPlayer.fighter.hurtboxes[otherPlayer.action][otherFrame][o]) : otherPlayer.fighter.hurtboxes[otherPlayer.action][otherFrame][o]);
@@ -1158,7 +1182,10 @@ setInterval(function() {
 				    } else {
 				    	player.action = 'stun';
 				    	player.stun -= Math.max(0, game.time - tempTime);
-				    	player.animationFrame = 0;
+
+				    	if(player.lastFrame[1] != 'stun') {
+					    	player.animationFrame = 0;
+					    }
 				    }
 
 			    	if (player.action != 'stun' && player.velY > player.fighter.terminalVelocity*(60/gameSpeed)) {
@@ -1196,11 +1223,42 @@ setInterval(function() {
 	try {
 		for (var i in games) {
 			var game = games[i];
-			var stateSend = {'name': game.name, 'started': game.started, 'players': [], 'host': game.host, 'stage': game.stage};
+			var players = Object.keys(game.players).length.toString();
+			var host;
+
+			var index = 0;
 			for (var j in game.players) {
 				var player = game.players[j];
-				stateSend['players'].push({'name': player.name, 'id': player.id, 'won': player.won, 'lost': player.lost, 'animationFrame': player.animationFrame, 'fighter': player.fighter.name, 'sprite': player.sprite});
+				
+				if(j == game.host) {
+					host = index;
+				}
+
+				// 1 digit number of players, 2 digit id length, id, 2 digit name length, name, 1 digit win, 1 digit lose, 2 digit action id, 2 digit animation frame, 2 digit fighter id, 1 digit sprite, 1 digit stock, 6 digit x, 6 digit y, 1 digit facing, 3 digit launch
+				players += ('0' + player.id.length.toString()).slice(-2) + player.id + 
+					('0' + player.name.length.toString()).slice(-2) + player.name + 
+					((player.won) ? '1' : '0') + 
+					((player.lost) ? '1' : '0') + 
+					('0' + getActionID(player.action).toString()).slice(-2) + 
+					('0' + player.animationFrame.toString()).slice(-2) + 
+					('0' + getFighterID(player.fighter.name).toString()).slice(-2) + 
+					player.sprite.toString().slice(-1) + 
+					player.stock.toString().slice(-1) + 
+					(player.x + 4).toFixed(4).slice(-6) + 
+					(player.y + 4).toFixed(4).slice(-6) + 
+					((player.facing == 'right') ? '1' : '0') + 
+					('00' + Math.floor(player.launch).toString()).slice(-3);
+
+				index++;
 			}
+
+			// 2 digit name length, name, 1 digit started, 2 digit stage id, 1 digit host index, players
+			var stateSend = ('0' + game.name.length.toString()).slice(-2) + game.name + 
+				((game.started) ? '1' : '0') + 
+				('0' + getStageID(game.stage.name).toString()).slice(-2) + 
+				host + 
+				players;
+
 			for (var j in games[i].players) {
 				io.to(games[i].players[j].id).emit('state', stateSend);
 			}
