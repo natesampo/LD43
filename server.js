@@ -68,6 +68,8 @@ function getFighterID(fighter) {
 			return i;
 		}
 	}
+
+	return -1;
 }
 
 function getStageID(stage) {
@@ -260,7 +262,14 @@ function shootProjectile(user, projectile) {
 	}
 
 	if (!tempProjectile) {
-		tempProjectile = splitData(projectile.replace(/\\/g, '\n').replace(/\?/g, '@').replace(/\`/g, ';').replace(/\~/g, ':').replace(/\+/g, ',').replace(/\$/g, '=').replace(/\*/, '_'));
+		tempProjectile = createProjectile(splitData(projectile.replace(/\\/g, '\n').replace(/\?/g, '@').replace(/\`/g, ';').replace(/\~/g, ':').replace(/\+/g, ',').replace(/\$/g, '=').replace(/\*/, '_')));
+	
+		for (var i in user['newProjectiles']) {
+			if (user['newProjectiles'][i].name == tempProjectile.name) {
+				index = i;
+				break;
+			}
+		}
 	}
 
 	user.projectiles.push({
@@ -614,7 +623,7 @@ io.on('connection', function(socket) {
 	});
 	socket.on('w', function() {
 		try {
-			if (users[socket.id]) {
+			if (users[socket.id] && users[socket.id].inGame) {
 				var player = games[users[socket.id].inGame].players[socket.id];
 				player.movement.up = true;
 			}
@@ -625,7 +634,7 @@ io.on('connection', function(socket) {
   	});
   	socket.on('a', function() {
 		try {
-			if (users[socket.id]) {
+			if (users[socket.id] && users[socket.id].inGame) {
 				var player = games[users[socket.id].inGame].players[socket.id];
 				player.movement.left = true;
 			}
@@ -636,7 +645,7 @@ io.on('connection', function(socket) {
   	});
   	socket.on('s', function() {
 		try {
-			if (users[socket.id]) {
+			if (users[socket.id] && users[socket.id].inGame) {
 				var player = games[users[socket.id].inGame].players[socket.id];
 				player.movement.down = true;
 			}
@@ -647,7 +656,7 @@ io.on('connection', function(socket) {
   	});
   	socket.on('d', function() {
 		try {
-			if (users[socket.id]) {
+			if (users[socket.id] && users[socket.id].inGame) {
 				var player = games[users[socket.id].inGame].players[socket.id];
 				player.movement.right = true;
 			}
@@ -658,7 +667,7 @@ io.on('connection', function(socket) {
   	});
   	socket.on('wUp', function() {
 		try {
-			if (users[socket.id]) {
+			if (users[socket.id] && users[socket.id].inGame) {
 				var player = games[users[socket.id].inGame].players[socket.id];
 				player.movement.up = false;
 			}
@@ -669,7 +678,7 @@ io.on('connection', function(socket) {
   	});
   	socket.on('aUp', function() {
 		try {
-			if (users[socket.id]) {
+			if (users[socket.id] && users[socket.id].inGame) {
 				var player = games[users[socket.id].inGame].players[socket.id];
 				player.movement.left = false;
 			}
@@ -680,7 +689,7 @@ io.on('connection', function(socket) {
   	});
   	socket.on('sUp', function() {
 		try {
-			if (users[socket.id]) {
+			if (users[socket.id] && users[socket.id].inGame) {
 				var player = games[users[socket.id].inGame].players[socket.id];
 				player.movement.down = false;
 			}
@@ -691,7 +700,7 @@ io.on('connection', function(socket) {
   	});
   	socket.on('dUp', function() {
 		try {
-			if (users[socket.id]) {
+			if (users[socket.id] && users[socket.id].inGame) {
 				var player = games[users[socket.id].inGame].players[socket.id];
 				player.movement.right = false;
 			}
@@ -840,7 +849,9 @@ function joinGame(socketID, gameID) {
 	}
 }
 
-function createGame(socketID, v, newFighter, newProjectiles) {
+function createGame(socketID, v, newFighter) {
+	var fighterData = ((newFighter) ? [createFighter(splitData(newFighter))] : fighters);
+
 	games[socketID] = {
 		id: socketID,
 		name: users[socketID].name + "'s Game",
@@ -849,7 +860,7 @@ function createGame(socketID, v, newFighter, newProjectiles) {
 		time: new Date(),
 		stage: stages[0],
 		players: {},
-		fighters: ((newFighter) ? [createFighter(splitData(newFighter))] : fighters),
+		fighters: fighterData,
 		visible: v,
 		demo: (newFighter != null)
 	};
@@ -894,6 +905,14 @@ function createGame(socketID, v, newFighter, newProjectiles) {
 
 	if (lobby[socketID]) {
 		delete lobby[socketID];
+	}
+
+	if (newFighter) {
+		games[socketID].players[socketID]['newProjectiles'] = [];
+		for (var i=1; i<splitData(newFighter).effects.split('projectile,').length; i++) {
+			games[socketID].players[socketID]['newProjectiles'].push(createProjectile(splitData(splitData(newFighter).effects.split('projectile,')[i].split(';')[0].split('|')[0].replace(/\\/g, '\n').replace(/\?/g, '@').replace(/\`/g, ';').replace(/\~/g, ':').replace(/\+/g, ',').replace(/\$/g, '=').replace(/\*/, '_'))));
+		}
+		io.to(socketID).emit('demoFighterData', fighterData[0], games[socketID].players[socketID]['newProjectiles']);
 	}
 }
 
