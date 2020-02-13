@@ -261,11 +261,13 @@ function shootProjectile(user, projectile) {
 		}
 	}
 
-	if (!tempProjectile) {
-		tempProjectile = createProjectile(splitData(projectile.replace(/\\/g, '\n').replace(/\?/g, '@').replace(/\`/g, ';').replace(/\~/g, ':').replace(/\+/g, ',').replace(/\$/g, '=').replace(/\*/, '_')));
-	
-		for (var i in user['newProjectiles']) {
-			if (user['newProjectiles'][i].name == tempProjectile.name) {
+	if (user.demo) {
+		if (!tempProjectile) {
+			tempProjectile = createProjectile(splitData(projectile.replace(/\\/g, '\n').replace(/\?/g, '@').replace(/\`/g, ';').replace(/\~/g, ':').replace(/\+/g, ',').replace(/\$/g, '=').replace(/\*/, '_')));
+		}
+
+		for (var i in user.newProjectiles) {
+			if (user.newProjectiles[i].name == tempProjectile.name) {
 				index = i;
 				break;
 			}
@@ -357,20 +359,20 @@ function createFighter(data) {
 	for (var i=0; i<rawDataArray.length; i+=2) {
 		tempEffects = rawDataArray[i+1].split('_');
 		effects[rawDataArray[i]] = {};
-		for (var j=0; j<tempEffects.length; j+=2) {
+		for (var j=0; j<tempEffects.length; j++) {
 			let tempFrames = tempEffects[j].split('=');
-			effects[rawDataArray[i]][tempFrames[j]] = [];
-			for (var k=0; k<tempFrames.length; k++) {
-				let tempEffect = tempFrames[k].split(';');
-				for (var l=0; l<tempEffect.length; l++) {
-					let tempArg = tempEffect[l].split(',');
+			effects[rawDataArray[i]][tempFrames[0]] = [];
+			if (tempFrames.length == 2) {
+				let tempEffect = tempFrames[1].split(';');
+				for (var k=0; k<tempEffect.length; k++) {
+					let tempArg = tempEffect[k].split(',');
 					if (tempArg[0] == 'projectile') {
-						effects[rawDataArray[i]][tempFrames[j]].push(function(user){shootProjectile(user,tempArg[1]);});
+						effects[rawDataArray[i]][tempFrames[0]].push(function(user){shootProjectile(user,tempArg[1]);});
 					} else if (tempArg[0] == 'x' || tempArg[0] == 'velX' || tempArg[0] == 'y' || tempArg[0] == 'velY') {
 						if (tempArg[1] == 'set') {
-							effects[rawDataArray[i]][tempFrames[j]].push(function(user){user[tempArg[0]]=((((tempArg[0] =='x'||tempArg[0]=='velX')&&user.facing=='left')&&(tempArg[3]==1)) ? -1 : 1)*parseFloat(tempArg[2])*(60/gameSpeed)});
+							effects[rawDataArray[i]][tempFrames[0]].push(function(user){user[tempArg[0]]=((((tempArg[0] =='x'||tempArg[0]=='velX')&&user.facing=='left')&&(tempArg[3]==1)) ? -1 : 1)*parseFloat(tempArg[2])*(60/gameSpeed)});
 						} else if (tempArg[1] == 'add') {
-							effects[rawDataArray[i]][tempFrames[j]].push(function(user){user[tempArg[0]]+=((((tempArg[0] =='x'||tempArg[0]=='velX')&&user.facing=='left')&&(tempArg[3]==1)) ? -1 : 1)*parseFloat(tempArg[2])*(60/gameSpeed)});
+							effects[rawDataArray[i]][tempFrames[0]].push(function(user){user[tempArg[0]]+=((((tempArg[0] =='x'||tempArg[0]=='velX')&&user.facing=='left')&&(tempArg[3]==1)) ? -1 : 1)*parseFloat(tempArg[2])*(60/gameSpeed)});
 						}
 					}
 				}
@@ -909,8 +911,25 @@ function createGame(socketID, v, newFighter) {
 
 	if (newFighter) {
 		games[socketID].players[socketID]['newProjectiles'] = [];
-		for (var i=1; i<splitData(newFighter).effects.split('projectile,').length; i++) {
-			games[socketID].players[socketID]['newProjectiles'].push(createProjectile(splitData(splitData(newFighter).effects.split('projectile,')[i].split(';')[0].split('|')[0].replace(/\\/g, '\n').replace(/\?/g, '@').replace(/\`/g, ';').replace(/\~/g, ':').replace(/\+/g, ',').replace(/\$/g, '=').replace(/\*/, '_'))));
+		var newProjectileData = splitData(newFighter).effects.split('=projectile,');
+		for (var i=1; i<newProjectileData.length; i++) {
+			if (newProjectileData[i][newProjectileData[i].length-2] == '_') {
+				newProjectileData[i] = newProjectileData[i].slice(0, -2);
+			}
+
+			var index = -1;
+			for (var j in projectiles) {
+				if (projectiles[j].name == newProjectileData[i]) {
+					index = j;
+					break;
+				}
+			}
+
+			if (index == -1) {
+				games[socketID].players[socketID]['newProjectiles'].push(createProjectile(splitData(newProjectileData[i].split(';')[0].split('|')[0].replace(/\\/g, '\n').replace(/\?/g, '@').replace(/\`/g, ';').replace(/\~/g, ':').replace(/\+/g, ',').replace(/\$/g, '=').replace(/\*/, '_'))));
+			} else {
+				games[socketID].players[socketID]['newProjectiles'].push(projectiles[index]);
+			}
 		}
 		io.to(socketID).emit('demoFighterData', fighterData[0], games[socketID].players[socketID]['newProjectiles']);
 	}
@@ -1272,7 +1291,7 @@ setInterval(function() {
 			var index = 0;
 			for (var j in game.players) {
 				var player = game.players[j];
-				
+
 				if(j == game.host) {
 					host = index;
 				}

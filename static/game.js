@@ -210,7 +210,7 @@ var createAttackInputs = [];
 var createFighterButtons = [new Button('back', function() {return canvas.width/60;}, function() {return canvas.height/33.75;}, function() {return canvas.width/10;}, function() {return canvas.height/15;}, 3, function() {demo = false; fighterSelect = false; createFighter=false;}, function() {return true;}, function() {return 'white';}, function() {return ['Back'];}, 'black', function() {return (canvas.width/70).toString() + 'px Arial';}, function() {return null;}, function() {return true;}),
   new Button('loadExistingFighter', function() {return 0.005*canvas.width;}, function() {return 0.94*canvas.height;}, function() {return canvas.width/7;}, function() {return canvas.height/20;}, 3, function() {fighterSelect = !fighterSelect;}, function() {return true;}, function() {return 'white';}, function() {return ['Load Existing Fighter'];}, 'black', function() {return (canvas.width/70).toString() + 'px Arial';}, function() {return null;}, function() {return true;}),
   new Button('uploadFighter', function() {return 0.012*canvas.width + this.getWidth();}, function() {return 0.94*canvas.height;}, function() {return canvas.width/7;}, function() {return canvas.height/20;}, 3, function() {uploadNewFighter = true; document.getElementById('folderInputButton').click();}, function() {return true;}, function() {return 'white';}, function() {return ['Upload Fighter'];}, 'black', function() {return (canvas.width/70).toString() + 'px Arial';}, function() {return null;}, function() {return true;}),
-  new Button('demoFighter', function() {return 0.703*canvas.width;}, function() {return 0.94*canvas.height;}, function() {return canvas.width/7;}, function() {return canvas.height/20;}, 3, function() {newFighterPlay = false; var newFighterStr = encodeNewFighter(newFighterData); for(var i in newFighterData['projectiles']) {newFighterStr = newFighterStr.replace(i, encodeNewProjectile(i).replace(/\n/g, '\\').replace(/\@/g, '?').replace(/\;/g, '`').replace(/\:/g, '~').replace(/\,/g, '+').replace(/\=/g, '$').replace(/\_/g, '*'));} socket.emit('createGame', false, newFighterStr); socket.emit('rename', newFighterData['name']);}, function() {return true;}, function() {return 'white';}, function() {return ['Demo Fighter'];}, 'black', function() {return (canvas.width/70).toString() + 'px Arial';}, function() {return null;}, function() {return true;}),
+  new Button('demoFighter', function() {return 0.703*canvas.width;}, function() {return 0.94*canvas.height;}, function() {return canvas.width/7;}, function() {return canvas.height/20;}, 3, function() {newFighterPlay = false; var newFighterStr = encodeNewFighter(newFighterData); for(var i in newFighterData['projectiles']) {var found = false; for (var j in projectiles) {if (projectiles[j].name == i) {found = true; break;}} if (!found) {newFighterStr = newFighterStr.replace(i, encodeNewProjectile(i).replace(/\n/g, '\\').replace(/\@/g, '?').replace(/\;/g, '`').replace(/\:/g, '~').replace(/\,/g, '+').replace(/\=/g, '$').replace(/\_/g, '*'));}} socket.emit('createGame', false, newFighterStr); socket.emit('rename', newFighterData['name']);}, function() {return true;}, function() {return 'white';}, function() {return ['Demo Fighter'];}, 'black', function() {return (canvas.width/70).toString() + 'px Arial';}, function() {return null;}, function() {return true;}),
   new Button('downloadFighter', function() {return 0.853*canvas.width;}, function() {return 0.94*canvas.height;}, function() {return canvas.width/7;}, function() {return canvas.height/20;}, 3, function() {downloadNewFighter();}, function() {return true;}, function() {return 'white';}, function() {return ['Download Fighter'];}, 'black', function() {return (canvas.width/70).toString() + 'px Arial';}, function() {return null;}, function() {return true;}),
   new Button('newAttack', function() {return canvas.width/1.09 - this.getWidth()/2;}, function() {return canvas.height/16.5;}, function() {return canvas.width/10;}, function() {return canvas.height/25;}, 3, function() {newAttackInputs(); if (!newFighterData['attacks'][newFighterAction]) {newFighterData['attacks'][newFighterAction]=[];} newFighterData['attacks'][newFighterAction].push({'damage': 0, 'launch': [0, 0], 'stun': 0, 'frames': []});}, function() {return ((newFighterData['attacks'][newFighterAction]) ? newFighterData['attacks'][newFighterAction].length < 8 : true);}, function() {return 'white';}, function() {return ['New'];}, 'black', function() {return (canvas.width/90).toString() + 'px Arial';}, function() {return null;}, function() {return true;}),
   new Button('removeAttack', function() {return canvas.width/1.09 - this.getWidth()/2;}, function() {return canvas.height/14 + this.getHeight() + ((newFighterData['attacks'][newFighterAction]) ? newFighterData['attacks'][newFighterAction].length*canvas.height/10 : 0);}, function() {return canvas.width/10;}, function() {return canvas.height/25;}, 3, function() {if (newFighterData['attacks'][newFighterAction]) {newFighterData['attacks'][newFighterAction].splice(-1, 1); createAttackInputs.splice(-4, 4);}}, function() {return ((newFighterData['attacks'][newFighterAction]) ? newFighterData['attacks'][newFighterAction].length > 0 : false);}, function() {return 'white';}, function() {return ['Remove'];}, 'black', function() {return (canvas.width/90).toString() + 'px Arial';}, function() {return null;}, function() {return ((newFighterData['attacks'][newFighterAction]) ? newFighterData['attacks'][newFighterAction].length > 0 : false);}),
@@ -622,30 +622,26 @@ function encodeNewFighter() {
   newFighterString = newFighterString + '\neffects@';
   for(var i in newFighterData['effects']) {
     newFighterString = newFighterString + i + '|';
-    var fnd = false;
     for(var j in newFighterData['effects'][i]) {
       var frameFound = false;
       for(var k in newFighterData['effects'][i][j]) {
         if(k == 'projectile') {
           if(newFighterData['effects'][i][j][k] != null) {
-            newFighterString = newFighterString + ((frameFound) ? '' : (j.toString() + '=')) + k + ',' + newFighterData['effects'][i][j][k] + ';';
+            newFighterString = newFighterString + ((frameFound) ? '' : (((j == 0) ? '' : '_') + j.toString() + '=')) + k + ',' + newFighterData['effects'][i][j][k] + ';';
             frameFound = true;
-            fnd = true;
           }
         } else if(newFighterData['effects'][i][j][k].add != null) {
-          newFighterString = newFighterString + ((frameFound) ? '' : (j.toString() + '=')) + k + ',add,' + newFighterData['effects'][i][j][k].add.toString() + ',' + newFighterData['effects'][i][j][k].facing.toString() + ';';
+          newFighterString = newFighterString + ((frameFound) ? '' : (((j == 0) ? '' : '_') + j.toString() + '=')) + k + ',add,' + newFighterData['effects'][i][j][k].add.toString() + ',' + newFighterData['effects'][i][j][k].facing.toString() + ';';
           frameFound = true;
-          fnd = true;
         } else if(newFighterData['effects'][i][j][k].set != null) {
-          newFighterString = newFighterString + ((frameFound) ? '' : (j.toString() + '=')) + k + ',set,' + newFighterData['effects'][i][j][k].set.toString() + ',' + newFighterData['effects'][i][j][k].facing.toString() + ';';
+          newFighterString = newFighterString + ((frameFound) ? '' : (((j == 0) ? '' : '_') + j.toString() + '=')) + k + ',set,' + newFighterData['effects'][i][j][k].set.toString() + ',' + newFighterData['effects'][i][j][k].facing.toString() + ';';
           frameFound = true;
-          fnd = true;
         }
       }
-    }
 
-    if(fnd) {
-      newFighterString = newFighterString.slice(0, -1);
+      if(newFighterString[newFighterString.length-1] == ';') {
+        newFighterString = newFighterString.slice(0, -1);
+      }
     }
 
     newFighterString = newFighterString + '|';
@@ -1093,7 +1089,7 @@ function render() {
         for (var i in tempPlayer.projectiles) {
           var projectile = tempPlayer.projectiles[i];
           var data = ((demo) ? newDemoProjectiles[projectile.index] : projectiles[projectile.index]);
-          var tempSheet = ((imgs['demo'] && demo) ? imgs['demo'][tempPlayer.sprite][data.name] : imgs['projectiles'][data.name]);
+          var tempSheet = ((demo && imgs['demo'] && imgs['demo'][tempPlayer.sprite] && imgs['demo'][tempPlayer.sprite][data.name]) ? imgs['demo'][tempPlayer.sprite][data.name] : imgs['projectiles'][data.name]);
           drawProjectileFrame = Math.floor(projectile.frame/data.animationTime);
           if (projectile.facing == 'right') {
             context.drawImage(tempSheet, drawProjectileFrame*(tempSheet.width/data.frames), 0, tempSheet.width/data.frames, tempSheet.height, projectile.x*canvas.width, projectile.y*canvas.height, data.width*canvas.width, data.height*canvas.height);
@@ -1922,9 +1918,6 @@ socket.on('state', function(gameString) {
         'x': +gameString.substring(index + 4, index + 10) - 4,
         'y': +gameString.substring(index + 10, index + 16) - 4,
         'facing': ((+gameString.substring(index + 16, index + 17)) ? 'right' : 'left')});
-
-      //newFighterStr.replace(i, encodeNewProjectile(i).replace(/\n/g, '\\').replace(/\@/g, '?').replace(/\;/g, '`').replace(/\:/g, '~').replace(/\,/g, '+').replace(/\=/g, '$').replace(/\_/g, '*'))
-
       index += 17;
     }
 
