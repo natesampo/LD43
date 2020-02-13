@@ -814,7 +814,7 @@ function newFighterLoadExisting(ind) {
     tempCanvas.width = img.width;
     tempCanvas.height = img.height/fighter.sprites;
 
-    tempContext.drawImage(img, tempCanvas.width, newFighterSprite*tempCanvas.height, tempCanvas.width, tempCanvas.height, 0, 0, tempCanvas.width, tempCanvas.height);
+    tempContext.drawImage(img, 0, newFighterSprite*tempCanvas.height, tempCanvas.width, tempCanvas.height, 0, 0, tempCanvas.width, tempCanvas.height);
 
     var img1 = new Image();
     img1.src = tempCanvas.toDataURL('image/png');
