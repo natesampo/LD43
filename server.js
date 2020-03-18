@@ -211,43 +211,61 @@ spriteData['menu']['play'] = '/static/sprites/menu/play.png';
 spriteData['menu']['pause'] = '/static/sprites/menu/pause.png';
 
 function createProjectile(data) {
-	var rawDataArray = data['hitboxes'].split('_');
 	var hitboxes = {};
-	var tempBox;
-	for (var i=0; i<rawDataArray.length; i++) {
-		hitboxes[i.toString()] = [];
-		tempBox = rawDataArray[i].split(';');
-		for (var j=0; j<tempBox.length; j+=2) {
-			tempBox[j+1] = tempBox[j+1].split(',');
-			hitboxes[i.toString()].push({'id': tempBox[j], 'hitbox': [parseFloat(tempBox[j+1][0]), parseFloat(tempBox[j+1][1]), parseFloat(tempBox[j+1][2]), parseFloat(tempBox[j+1][3])], 'alreadyHit':[]});
-		}
-	}
-
-	rawDataArray = data['attacks'].split('_');
 	var attacks = {};
-	for (var i=0; i<rawDataArray.length; i++) {
-		tempBox = rawDataArray[i].split('=');
-		for (var j=0; j<tempBox.length; j+=2) {
-			tempBox[j+1] = tempBox[j+1].split(';');
-			attacks[tempBox[0]] = {'damage': parseFloat(tempBox[j+1][0]), 'launch': [parseFloat(tempBox[j+1][1].split(',')[0]), parseFloat(tempBox[j+1][1].split(',')[1])], 'stun': parseFloat(tempBox[j+1][2])};
-		}
-	}
+	var tempBox;
 
-	return new Projectile(
-		data['name'],
-		data['facing'],
-		data['x'],
-		data['y'],
-		parseFloat(data['width']),
-		parseFloat(data['height']),
-		data['velX'],
-		data['velY'],
-		parseFloat(data['weight']),
-		parseFloat(data['animationTime']),
-		parseFloat(data['hitsLeft']),
-		parseFloat(data['frames']),
-		hitboxes,
-		attacks);
+	console.log(Object.keys(data));
+	console.log(Object.keys(data).length);
+
+	if (Object.keys(data).length > 1) {
+		if (data['hitboxes'].length > 0) {
+			var rawDataArray = data['hitboxes'].split('_');
+			for (var i=0; i<rawDataArray.length; i++) {
+				hitboxes[i.toString()] = [];
+				tempBox = rawDataArray[i].split(';');
+				for (var j=0; j<tempBox.length; j+=2) {
+					tempBox[j+1] = tempBox[j+1].split(',');
+					hitboxes[i.toString()].push({'id': tempBox[j], 'hitbox': [parseFloat(tempBox[j+1][0]), parseFloat(tempBox[j+1][1]), parseFloat(tempBox[j+1][2]), parseFloat(tempBox[j+1][3])], 'alreadyHit':[]});
+				}
+			}
+		}
+
+		if (data['attacks'].length > 0) {
+			rawDataArray = data['attacks'].split('_');
+			for (var i=0; i<rawDataArray.length; i++) {
+				tempBox = rawDataArray[i].split('=');
+				for (var j=0; j<tempBox.length; j+=2) {
+					tempBox[j+1] = tempBox[j+1].split(';');
+					attacks[tempBox[0]] = {'damage': parseFloat(tempBox[j+1][0]), 'launch': [parseFloat(tempBox[j+1][1].split(',')[0]), parseFloat(tempBox[j+1][1].split(',')[1])], 'stun': parseFloat(tempBox[j+1][2])};
+				}
+			}
+		}
+
+		return new Projectile(
+			data['name'],
+			data['facing'],
+			data['x'],
+			data['y'],
+			parseFloat(data['width']),
+			parseFloat(data['height']),
+			data['velX'],
+			data['velY'],
+			parseFloat(data['weight']),
+			parseFloat(data['animationTime']),
+			parseFloat(data['hitsLeft']),
+			parseFloat(data['frames']),
+			hitboxes,
+			attacks);
+	} else {
+		for (var i in projectiles) {
+			if (projectiles[i]['name'] == 'bottle') {
+				return projectiles[i];
+			}
+		}
+
+		return projectiles[0];
+	}
 }
 
 function shootProjectile(user, projectile) {
