@@ -2773,6 +2773,9 @@ document.addEventListener('keydown', function(event) {
         newFighterBoxSelected[0] = null;
         newFighterBoxSelected[1] = '';
       }
+
+      event.stopPropagation();
+      event.returnValue = false;
       break;
     case 46: // Delete
       if(newFighterBoxSelected[0] != null) {
@@ -3120,6 +3123,7 @@ function keycode(keycode, shift) {
     case 188:
       return ((shift) ? '<' : ',');
       break;
+    case 173:
     case 189:
       return ((shift) ? '_' : '-');
       break;
