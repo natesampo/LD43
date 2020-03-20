@@ -215,9 +215,6 @@ function createProjectile(data) {
 	var attacks = {};
 	var tempBox;
 
-	console.log(Object.keys(data));
-	console.log(Object.keys(data).length);
-
 	if (Object.keys(data).length > 1) {
 		if (data['hitboxes'].length > 0) {
 			var rawDataArray = data['hitboxes'].split('_');
