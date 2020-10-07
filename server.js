@@ -255,6 +255,7 @@ function createProjectile(data) {
 			hitboxes,
 			attacks);
 	} else {
+		// Default if empty projectile
 		for (var i in projectiles) {
 			if (projectiles[i]['name'] == 'bottle') {
 				return projectiles[i];
@@ -390,7 +391,13 @@ function createFighter(data) {
 					if (tempArg[0] == 'projectile') {
 						effects[rawDataArray[i]][tempFrames[0]].push(function(user){shootProjectile(user,tempArg[1]);});
 					} else if (tempArg[0] == 'lingering') {
+						let lingerString = '';
 
+						for (var l=1; l<tempArg.length; l++) {
+							lingerString = lingerString + ',' + tempArg[l];
+						}
+						lingerString = lingerString.substring(1);
+						effects[rawDataArray[i]][tempFrames[0]].push(function(user){user.lingerFlag=lingerString;});
 					} else if (tempArg[0] == 'turnable') {
 						effects[rawDataArray[i]][tempFrames[0]].push(function(user){if (user.movement.right) {user.facing = 'right';} else if (user.movement.left) {user.facing = 'left';}});
 					} else if (tempArg[0] == 'x' || tempArg[0] == 'velX' || tempArg[0] == 'y' || tempArg[0] == 'velY') {
@@ -580,27 +587,28 @@ io.on('connection', function(socket) {
 		try {
 			var game = games[users[socket.id].inGame];
 			var player = game.players[socket.id];
-			if (player.lastAttack <= 0 && !player.lost && !player.won) {
+
+			if (player.lingerFlag.includes('attack')) {
+				player.lingerFlag = '';
+			}
+
+			if ((player.action == 'idle' || player.action == 'airmove' || player.action == 'run') && !player.lost && !player.won) {
 				if (direction == 'left') {
 					if (player.grounded) {
 						if (player.action == 'run') {
 							player.action = 'forward';
-							player.lastAttack = player.fighter.animationTimes[player.action]*(parseInt(player.fighter.frames[player.action])+2);
 							player.animationFrame = 0;
 						} else {
 							player.facing = 'left';
 							player.action = 'neutral';
-							player.lastAttack = player.fighter.animationTimes[player.action]*(parseInt(player.fighter.frames[player.action])+2);
 							player.animationFrame = 0;
 						}
 					} else {
 						if (player.facing == 'left') {
 							player.action = 'fair';
-							player.lastAttack = player.fighter.animationTimes[player.action]*(parseInt(player.fighter.frames[player.action])+2);
 							player.animationFrame = 0;
 						} else {
 							player.action = 'bair';
-							player.lastAttack = player.fighter.animationTimes[player.action]*(parseInt(player.fighter.frames[player.action])+2);
 							player.animationFrame = 0;
 						}
 					}
@@ -608,48 +616,39 @@ io.on('connection', function(socket) {
 					if (player.grounded) {
 						if (player.action == 'run') {
 							player.action = 'forward';
-							player.lastAttack = player.fighter.animationTimes[player.action]*(parseInt(player.fighter.frames[player.action])+2);
 							player.animationFrame = 0;
 						} else {
 							player.facing = 'right';
 							player.action = 'neutral';
-							player.lastAttack = player.fighter.animationTimes[player.action]*(parseInt(player.fighter.frames[player.action])+2);
 							player.animationFrame = 0;
 						}
 					} else {
 						if (player.facing == 'right') {
 							player.action = 'fair';
-							player.lastAttack = player.fighter.animationTimes[player.action]*(parseInt(player.fighter.frames[player.action])+2);
 							player.animationFrame = 0;
 						} else {
 							player.action = 'bair';
-							player.lastAttack = player.fighter.animationTimes[player.action]*(parseInt(player.fighter.frames[player.action])+2);
 							player.animationFrame = 0;
 						}
 					}
 				} else if (direction == 'up') {
 					if (player.grounded) {
 						player.action = 'nair';
-						player.lastAttack = player.fighter.animationTimes[player.action]*(parseInt(player.fighter.frames[player.action])+2);
 						player.animationFrame = 0;
 					} else {
 						player.action = 'uair';
-						player.lastAttack = player.fighter.animationTimes[player.action]*(parseInt(player.fighter.frames[player.action])+2);
 						player.animationFrame = 0;
 					}
 				} else if (direction == 'down') {
 					if (player.grounded) {
 						player.action = 'dtilt';
-						player.lastAttack = player.fighter.animationTimes[player.action]*(parseInt(player.fighter.frames[player.action])+2);
 						player.animationFrame = 0;
 					} else {
 						player.action = 'dair';
-						player.lastAttack = player.fighter.animationTimes[player.action]*(parseInt(player.fighter.frames[player.action])+2);
 						player.animationFrame = 0;
 					}
 				} else if (direction == 'dodge') {
 					player.action = 'dodge';
-					player.lastAttack = player.fighter.animationTimes[player.action]*(parseInt(player.fighter.frames[player.action])+2);
 					player.animationFrame = 0;
 				}
 			}
@@ -767,9 +766,9 @@ io.on('connection', function(socket) {
 	    	console.log(e);
 	    }
   	});
-  	socket.on('createGame', function(visible, newFighter) {
+  	socket.on('createGame', function(visible, newFighter, newFighterSprite) {
 		try {
-			createGame(socket.id, visible, newFighter);
+			createGame(socket.id, visible, newFighter, newFighterSprite);
 	    }
 	    catch (e) {
 	    	console.log(e);
@@ -859,7 +858,6 @@ function joinGame(socketID, gameID) {
 		    grounded: false,
 		    lastFrame: [0, 'idle'],
 		    animationFrame: 0,
-		    lastAttack: 0,
 		    jumps: 0,
 		    upPressed: false,
 		    movement: {
@@ -875,6 +873,7 @@ function joinGame(socketID, gameID) {
 		    won: false,
 		    projectileID: 0,
 		    sprite: 0,
+		    lingerFlag: '',
 		    demo: false
 		};
 
@@ -886,7 +885,7 @@ function joinGame(socketID, gameID) {
 	}
 }
 
-function createGame(socketID, v, newFighter) {
+function createGame(socketID, v, newFighter, newFighterSprite) {
 	var fighterData = ((newFighter) ? [createFighter(splitData(newFighter))] : fighters);
 
 	games[socketID] = {
@@ -919,7 +918,6 @@ function createGame(socketID, v, newFighter) {
 	    grounded: false,
 	    lastFrame: [0, 'idle'],
 	    animationFrame: 0,
-	    lastAttack: 0,
 	    jumps: 0,
 	    upPressed: false,
 	    movement: {
@@ -934,7 +932,8 @@ function createGame(socketID, v, newFighter) {
 	    lost: false,
 		won: false,
 		projectileID: 0,
-		sprite: 0,
+		sprite: ((newFighterSprite) ? newFighterSprite : 0),
+		lingerFlag: '',
 		demo: (newFighter != null)
 	};
 
@@ -988,49 +987,55 @@ setInterval(function() {
 
 			    var frame = Math.floor(player.animationFrame/player.fighter.animationTimes[player.action]).toString();
 
-			    if (player.lastAttack >= 0) {
-			    	player.lastAttack -= (60/gameSpeed);
-			    }
-
 			    if(player && player.fighter && !player.grounded && player.velY >= 0 && ((game.started && stage && stage.hitboxes) || (!game.started && previewStage && previewStage.hitboxes))) {
 			    	var groundbox = player.fighter.groundboxes[player.action][frame];
-		        	for (var j in ((game.started) ? stage.hitboxes : previewStage.hitboxes)) {
-			          	var hitbox2 = ((game.started) ? stage.hitboxes[j] : previewStage.hitboxes[j]);
-			          	if (checkHit([player.x + groundbox[0]*spriteWidth, player.y + groundbox[1]*spriteHeight, player.x + groundbox[2]*spriteWidth, player.y + groundbox[3]*spriteHeight], hitbox2)) {
-			            	if(player.x + groundbox[0]*spriteWidth > hitbox2[0]) {
-			              		if(player.x + groundbox[2]*spriteWidth < hitbox2[2]) {
-		                 	 		player.y = hitbox2[1] - groundbox[3]*spriteHeight;
-									player.velY = 0;
-									player.grounded = true;
-									player.jumps = player.fighter.jumps;
-			              		} else {
-			                		if (hitbox2[2] - groundbox[0]*spriteWidth != null) {
-							 			if (player.velX < 0) {
-											//player.x = hitbox2[2] - player.fighter.hurtboxes[player.action][frame][hitbox1][0]*spriteWidth;
+			    	if(groundbox) {
+			        	for (var j in ((game.started) ? stage.hitboxes : previewStage.hitboxes)) {
+				          	var hitbox2 = ((game.started) ? stage.hitboxes[j] : previewStage.hitboxes[j]);
+				          	if (checkHit([player.x + groundbox[0]*spriteWidth, player.y + groundbox[1]*spriteHeight, player.x + groundbox[2]*spriteWidth, player.y + groundbox[3]*spriteHeight], hitbox2)) {
+				            	if(player.x + groundbox[0]*spriteWidth > hitbox2[0]) {
+				              		if(player.x + groundbox[2]*spriteWidth < hitbox2[2]) {
+			                 	 		player.y = hitbox2[1] - groundbox[3]*spriteHeight;
+										player.velY = 0;
+										player.grounded = true;
+										player.jumps = player.fighter.jumps;
+										if (player.lingerFlag.includes('land')) {
+											player.lingerFlag = '';
+										}
+				              		} else {
+				                		if (hitbox2[2] - groundbox[0]*spriteWidth != null) {
+								 			if (player.velX < 0) {
+												//player.x = hitbox2[2] - player.fighter.hurtboxes[player.action][frame][hitbox1][0]*spriteWidth;
+											}
+										}
+				              		}
+				    			} else {
+				              		if (hitbox2[0] - groundbox[2]*spriteWidth != null) {
+							 			if (player.velX > 0) {
+											//player.x = hitbox2[0] - player.fighter.hurtboxes[player.action][frame][hitbox1][2]*spriteWidth;
 										}
 									}
-			              		}
-			    			} else {
-			              		if (hitbox2[0] - groundbox[2]*spriteWidth != null) {
-						 			if (player.velX > 0) {
-										//player.x = hitbox2[0] - player.fighter.hurtboxes[player.action][frame][hitbox1][2]*spriteWidth;
-									}
-								}
-			            	}
-			          	}
-		        	}
+				            	}
+				          	}
+			        	}
+			        }
 			    } else if(player && player.fighter && player.grounded && player.velY >= 0 && ((game.started && stage && stage.hitboxes) || (!game.started && previewStage && previewStage.hitboxes))) {
 			    	player.grounded = false;
-			    	var groundbox = player.fighter.groundboxes[player.action][frame];
-		        	for (var j in ((game.started) ? stage.hitboxes : previewStage.hitboxes)) {
-		          		var hitbox2 = ((game.started) ? stage.hitboxes[j] : previewStage.hitboxes[j]);
-		          		if (checkHit([player.x + groundbox[0]*spriteWidth, 0.05 + player.y + groundbox[1]*spriteHeight, player.x + groundbox[2]*spriteWidth, 0.05 + player.y + groundbox[3]*spriteHeight], hitbox2)) {
-		            		player.y = hitbox2[1] - groundbox[3]*spriteHeight;
-							player.velY = 0;
-							player.grounded = true;
-							player.jumps = player.fighter.jumps;
-		          		}
-		        	}
+				    var groundbox = player.fighter.groundboxes[player.action][frame];
+				    if(groundbox) {
+			        	for (var j in ((game.started) ? stage.hitboxes : previewStage.hitboxes)) {
+			          		var hitbox2 = ((game.started) ? stage.hitboxes[j] : previewStage.hitboxes[j]);
+			          		if (checkHit([player.x + groundbox[0]*spriteWidth, 0.05 + player.y + groundbox[1]*spriteHeight, player.x + groundbox[2]*spriteWidth, 0.05 + player.y + groundbox[3]*spriteHeight], hitbox2)) {
+			            		player.y = hitbox2[1] - groundbox[3]*spriteHeight;
+								player.velY = 0;
+								player.grounded = true;
+								player.jumps = player.fighter.jumps;
+								if (player.lingerFlag.includes('land')) {
+									player.lingerFlag = '';
+								}
+			          		}
+			        	}
+			        }
 			    }
 
 			    if (game.started) {
@@ -1189,10 +1194,11 @@ setInterval(function() {
 					    player.action = 'idle';
 					    player.animationFrame = 0;
 					    player.jumps = 0;
+					    player.lingerFlag = '';
 					}
 
 					var endedAction = null;
-					if (player.animationFrame == player.fighter.animationTimes[player.action]*player.fighter.frames[player.action]-1) {
+					if (player.animationFrame == player.fighter.animationTimes[player.action]*player.fighter.frames[player.action]-1 && player.lingerFlag.length == 0) {
 						endedAction = player.action;
 						for (var l in player.fighter.hitboxes[player.action]) {
 							var checkFrame = player.fighter.hitboxes[player.action][l];
@@ -1222,7 +1228,7 @@ setInterval(function() {
 							player.action = 'idle';
 						}
 						if (player.movement.left) {
-							if (player.velX > -player.fighter.runSpeed*(60/gameSpeed)) {
+							if (player.velX > -player.fighter.runSpeed*(60/gameSpeed) && (player.lingerFlag.length == 0 || !player.grounded)) {
 								player.velX -= (player.fighter.runSpeed/1.31)*(60/gameSpeed);
 							}
 							if (player.action == 'idle' && player.grounded) {
@@ -1240,7 +1246,7 @@ setInterval(function() {
 						}
 					    if (player.movement.up) {
 					    	if (!player.upPressed) {
-					      		if (player.jumps > 0) {
+					      		if (player.jumps > 0 && player.lingerFlag.length == 0) {
 					      			player.grounded = false;
 					      			player.velY = -player.fighter.jumpStrength*(60/gameSpeed);
 					      			player.jumps -= 1;
@@ -1251,7 +1257,7 @@ setInterval(function() {
 				    		player.upPressed = false;
 				    	}
 				    	if (player.movement.right) {
-				    		if (player.velX < player.fighter.runSpeed*(60/gameSpeed)) {
+				    		if (player.velX < player.fighter.runSpeed*(60/gameSpeed) && (player.lingerFlag.length == 0 || !player.grounded)) {
 					    		player.velX += (player.fighter.runSpeed/1.31)*(60/gameSpeed);
 					    	}
 				      		if (player.action == 'idle' && player.grounded) {
