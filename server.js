@@ -13,8 +13,8 @@ var port = 5000;
 var maxPlayers = 4;
 var totalPlayers = 0;
 var stockTotal = 5;
-var gameSpeed = 30;
-var maxCollisionDistance = 0.1;
+var gameSpeed = 60;
+var maxCollisionDistance = 0.3;
 var rawData = {};
 var spriteData = {};
 var fighters = [];
@@ -291,8 +291,8 @@ function shootProjectile(user, projectile) {
 	}
 
 	var alreadyHit = {};
-	for (var i in tempProjectile.hitboxes) {
-		alreadyHit[tempProjectile.hitboxes[i]['id']] = [];
+	for (var i in tempProjectile.attacks) {
+		alreadyHit[i] = [];
 	}
 
 	user.projectiles.push({
@@ -1047,7 +1047,7 @@ setInterval(function() {
 			            		var otherFrame = Math.floor(otherPlayer.animationFrame/otherPlayer.fighter.animationTimes[otherPlayer.action]).toString();
 			            		for (var o in otherPlayer.fighter.hurtboxes[otherPlayer.action][otherFrame]) {
 			        				var hitbox2 = ((player.facing == 'left') ? flipHitbox(otherPlayer.fighter.hurtboxes[otherPlayer.action][otherFrame][o]) : otherPlayer.fighter.hurtboxes[otherPlayer.action][otherFrame][o]);
-			              			if (checkHit([player.x + hitbox1[0]*spriteWidth, player.y + hitbox1[1]*spriteHeight, player.x + hitbox1[2]*spriteWidth, player.y + hitbox1[3]*spriteHeight], [otherPlayer.x + hitbox2[0]*spriteWidth, otherPlayer.y + hitbox2[1]*spriteHeight, otherPlayer.x + hitbox2[2]*spriteWidth, otherPlayer.y + hitbox2[3]*spriteHeight])) {
+			              			if (checkHit([player.x + hitbox1[0]*spriteWidth, player.y + hitbox1[1]*spriteHeight, player.x + hitbox1[2]*spriteWidth, player.y + hitbox1[3]*spriteHeight], [otherPlayer.x + hitbox2[0]*otherPlayer.fighter.spriteWidth, otherPlayer.y + hitbox2[1]*otherPlayer.fighter.spriteHeight, otherPlayer.x + hitbox2[2]*otherPlayer.fighter.spriteWidth, otherPlayer.y + hitbox2[3]*otherPlayer.fighter.spriteHeight])) {
 			                			var cont = false;
 										for (var l in player.fighter.hitboxes[player.action]) {
 											var checkFrame = player.fighter.hitboxes[player.action][l];
@@ -1074,47 +1074,37 @@ setInterval(function() {
 			      	}
 			    }
 
-		      	for (var a in player.projectiles) {
-		        	var projectile = player.projectiles[a];
-		        	projectile.frame = (projectile.frame + (60/gameSpeed))%(projectile.data.animationTime*projectile.data.frames);
-		        	var projectileFrame = Math.floor(projectile.frame/projectile.data.animationTime).toString();
-		        	for (var i in projectile.data.hitboxes[projectileFrame]) {
-		          		var hitbox1 = ((projectile.facing == 'left') ? flipHitbox(projectile.data.hitboxes[projectileFrame][i]['hitbox']) : projectile.data.hitboxes[projectileFrame][i]['hitbox']);
-		          		for (var j in game.players) {
-		            		var otherPlayer = game.players[j];
-		            		if (otherPlayer.id != player.id && getDistance(projectile.x, projectile.y, otherPlayer.x, otherPlayer.y) < maxCollisionDistance && !contains(projectile.data.hitboxes[projectileFrame][i]['alreadyHit'], otherPlayer.id)) {
-		              			var otherFrame = Math.floor(otherPlayer.animationFrame/otherPlayer.fighter.animationTimes[otherPlayer.action]).toString();
-		              			for (var o in otherPlayer.fighter.hurtboxes[otherPlayer.action][otherFrame]) {
-		                			var hitbox2 = ((otherPlayer.facing == 'left') ? flipHitbox(otherPlayer.fighter.hurtboxes[otherPlayer.action][otherFrame][o]) : otherPlayer.fighter.hurtboxes[otherPlayer.action][otherFrame][o]);
-		                			if (checkHit([projectile.x + hitbox1[0]*projectile.data.width, projectile.y + hitbox1[1]*projectile.data.height, projectile.x + hitbox1[2]*projectile.data.width, projectile.y + hitbox1[3]*projectile.data.height], [otherPlayer.x + hitbox2[0]*spriteWidth, otherPlayer.y + hitbox2[1]*spriteHeight, otherPlayer.x + hitbox2[2]*spriteWidth, otherPlayer.y + hitbox2[3]*spriteHeight])) {
-										var cont = false;
-										for (var l in projectile.data.hitboxes) {
-											var checkFrame = projectile.data.hitboxes[l];
-											for (var m in checkFrame) {
-											    var id = checkFrame[m]['id'];
-											    if (id == projectile.data.hitboxes[projectileFrame][i]['id'] && !contains(checkFrame[m]['alreadyHit'], otherPlayer.id)) {
-											        checkFrame[m]['alreadyHit'].push(otherPlayer.id);
-											        cont = true;
-											    }
-											}
-										}
+			  	for (var a in player.projectiles) {
+			    	var projectile = player.projectiles[a];
+			    	projectile.frame = (projectile.frame + (60/gameSpeed))%(projectile.data.animationTime*projectile.data.frames);
+			    	var projectileFrame = Math.floor(projectile.frame/projectile.data.animationTime).toString();
+			    	for (var i in projectile.data.hitboxes[projectileFrame]) {
+			      		var hitbox1 = ((projectile.facing == 'left') ? flipHitbox(projectile.data.hitboxes[projectileFrame][i]['hitbox']) : projectile.data.hitboxes[projectileFrame][i]['hitbox']);
+			      		for (var j in game.players) {
+			        		var otherPlayer = game.players[j];
+			        		if (otherPlayer.id != player.id && getDistance(projectile.x, projectile.y, otherPlayer.x, otherPlayer.y) < maxCollisionDistance && !contains(projectile.alreadyHit[projectile.data.hitboxes[projectileFrame][i].id], otherPlayer.id)) {
+			          			var otherFrame = Math.floor(otherPlayer.animationFrame/otherPlayer.fighter.animationTimes[otherPlayer.action]).toString();
+			          			for (var o in otherPlayer.fighter.hurtboxes[otherPlayer.action][otherFrame]) {
+			            			var hitbox2 = ((otherPlayer.facing == 'left') ? flipHitbox(otherPlayer.fighter.hurtboxes[otherPlayer.action][otherFrame][o]) : otherPlayer.fighter.hurtboxes[otherPlayer.action][otherFrame][o]);
+			            			if (checkHit([projectile.x + hitbox1[0]*projectile.data.width, projectile.y + hitbox1[1]*projectile.data.height, projectile.x + hitbox1[2]*projectile.data.width, projectile.y + hitbox1[3]*projectile.data.height], [otherPlayer.x + hitbox2[0]*otherPlayer.fighter.spriteWidth, otherPlayer.y + hitbox2[1]*otherPlayer.fighter.spriteHeight, otherPlayer.x + hitbox2[2]*otherPlayer.fighter.spriteWidth, otherPlayer.y + hitbox2[3]*otherPlayer.fighter.spriteHeight])) {
+										projectile.alreadyHit[projectile.data.hitboxes[projectileFrame][i].id].push(otherPlayer.id);
 
-										if (cont) {
-											otherPlayer.launch += projectile.data.attacks[projectile.data.hitboxes[projectileFrame][i]['id']]['damage'];
-											otherPlayer.velX = ((projectile.facing == 'left') ? -1 : 1) * ((otherPlayer.launch/30)*(otherPlayer.launch/30)*projectile.data.attacks[projectile.data.hitboxes[projectileFrame][i]['id']]['launch'][0]/otherPlayer.fighter.weight + 10*projectile.data.attacks[projectile.data.hitboxes[projectileFrame][i]['id']]['launch'][0]/otherPlayer.fighter.weight);
-											otherPlayer.velY = (otherPlayer.launch/30)*(otherPlayer.launch/30)*projectile.data.attacks[projectile.data.hitboxes[projectileFrame][i]['id']]['launch'][1]/otherPlayer.fighter.weight + 10*projectile.data.attacks[projectile.data.hitboxes[projectileFrame][i]['id']]['launch'][1]/otherPlayer.fighter.weight;
-											otherPlayer.stun += (projectile.data.attacks[projectile.data.hitboxes[projectileFrame][i]['id']]['stun']*150) + otherPlayer.launch;
-											otherPlayer.facing = ((projectile.facing == 'left') ? 'right' : 'left');
-											projectile.hitsLeft -= 1;
-											if (projectile.hitsLeft <= 0) {
-												for (var l in player.projectiles) {
-													if (player.projectiles[l].id == projectile.id) {
-														player.projectiles.splice(l, 1);
-														break;
-													}
+										otherPlayer.launch += projectile.data.attacks[projectile.data.hitboxes[projectileFrame][i]['id']]['damage'];
+										otherPlayer.velX = ((projectile.facing == 'left') ? -1 : 1) * ((otherPlayer.launch/30)*(otherPlayer.launch/30)*projectile.data.attacks[projectile.data.hitboxes[projectileFrame][i]['id']]['launch'][0]/otherPlayer.fighter.weight + 10*projectile.data.attacks[projectile.data.hitboxes[projectileFrame][i]['id']]['launch'][0]/otherPlayer.fighter.weight);
+										otherPlayer.velY = (otherPlayer.launch/30)*(otherPlayer.launch/30)*projectile.data.attacks[projectile.data.hitboxes[projectileFrame][i]['id']]['launch'][1]/otherPlayer.fighter.weight + 10*projectile.data.attacks[projectile.data.hitboxes[projectileFrame][i]['id']]['launch'][1]/otherPlayer.fighter.weight;
+										otherPlayer.stun += (projectile.data.attacks[projectile.data.hitboxes[projectileFrame][i]['id']]['stun']*150) + otherPlayer.launch;
+										otherPlayer.facing = ((projectile.facing == 'left') ? 'right' : 'left');
+										projectile.hitsLeft -= 1;
+										if (projectile.hitsLeft <= 0) {
+											for (var l in player.projectiles) {
+												if (player.projectiles[l].id == projectile.id) {
+													player.projectiles.splice(l, 1);
+													break;
 												}
 											}
 										}
+
+										break;
 		                			}
 		              			}
 		            		}
