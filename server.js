@@ -18,6 +18,7 @@ var maxCollisionDistance = 0.3;
 var terminalVelocityPercentFallPerTick = 0.07;
 var fastFallTerminalVelocity = 1.7;
 var fastFallTerminalVelocityAcceleration = 0.25;
+var defaultStocks = 5;
 var airFriction = 0.00025;
 var groundFriction = 0.001;
 var rawData = {};
@@ -26,7 +27,7 @@ var fighters = [];
 var projectiles = [];
 var stages = [];
 var names = ['Tony', 'Vinny', 'Bruno', 'Frank', 'Mario', 'Vito', 'Al', 'Gerardo', 'Angelo', 'Giovanni', 'Salvatore', 'Carmine', 'Fabrizio', 'Dominic', 'Alphonse', 'Vic', 'Giuseppe', 'Joey', 'Tommaso', 'Johnny', 'Vincent', 'Nicolo', 'Michael', 'Phil', 'Victor', 'Vincenzo', 'Luigi', 'Stefano', 'Giacomo', 'Santo', 'Ignazio'];
-var actions = ['idle', 'stun', 'dodge', 'nair', 'neutral', 'run', 'airmove', 'forward', 'fair', 'uair', 'bair', 'dair', 'dtilt'];
+var actions = ['idle', 'stun', 'dodge', 'nair', 'neutral', 'run', 'airmove', 'forward', 'fair', 'uair', 'bair', 'dair', 'dtilt', 'entrance'];
 
 app.use('/', express.static(__dirname + '/'));
 
@@ -906,7 +907,8 @@ function createGame(socketID, v, newFighter, newFighterSprite) {
 		players: {},
 		fighters: fighterData,
 		visible: v,
-		demo: (newFighter != null)
+		demo: (newFighter != null),
+		stocks: defaultStocks
 	};
 
 	games[socketID].players[socketID] = {
@@ -917,7 +919,7 @@ function createGame(socketID, v, newFighter, newFighterSprite) {
 	    velX: 0,
 	    velY: 0,
 	    fighter: games[socketID].fighters[0],
-	    stock: 5,
+	    stock: games[socketID].stocks,
 	    launch: 0,
 	    alive: false,
 	    spawnCooldown: 500,
@@ -1159,7 +1161,7 @@ setInterval(function() {
 					    player.alive = true;
 					    player.grounded = false;
 					    player.launch = 0;
-					    player.action = 'idle';
+					    player.action = ((player.stock == game.stocks) ? 'entrance' : 'idle');
 					    player.animationFrame = 0;
 					    player.jumps = player.fighter.jumps;
 					} else if (game.started && !player.alive && player.stock <= 0) {
