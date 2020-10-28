@@ -1,8 +1,9 @@
 name@Paddle
-terminalVelocity@0.01
-runSpeed@0.003
+terminalVelocity@0.02
+runSpeed@0.007
+friction@1
 jumps@2
-jumpStrength@0.017
+jumpStrength@0.03
 weight@10000
 spriteWidth@0.09597656249999999
 spriteHeight@0.24734375
@@ -12,5 +13,5 @@ groundboxes@idle|0_0.4501,0.3736,0.5574,0.7921_1_0.4501,0.3736,0.5574,0.7921_2_0
 frames@idle|8|dodge|1|stun|5|nair|8|neutral|5|run|8|airmove|1|forward|8|fair|8|uair|8|bair|7|dair|3|dtilt|7
 animationTimes@idle|5|dodge|5|stun|5|nair|5|neutral|5|run|5|airmove|5|forward|5|fair|5|uair|5|bair|5|dair|5|dtilt|5
 attacks@nair|0_10;5,-20;5_1_0;0,0;0|neutral|0_5;10,-1;1_1_0;0,0;0|bair|0_4;-5,-3;2|dair|0_7;0,20;2|uair|0_10;0,-17;3|forward|0_5;1,-1;1_1_5;1,-1;1_2_5;5,-5;2|fair|0_5;0,0;1_1_0;7,-7;2_2_0;0,-10;1_3_0;-7,-7;2_4_0;-9,4;2_5_0;-4,9;2_6_0;7,7;2|dtilt|0_5;3,-10;0
-effects@idle|0=turnable|dodge||stun||nair||neutral||run|0=turnable_1=turnable_2=turnable_3=turnable_4=turnable_5=turnable_6=turnable_7=turnable|airmove||forward||fair||uair|0=velX,set,0,0;velY,set,-0.025,0;turnable_1=velX,set,0,0;turnable_2=velX,set,0.01,1_3=velX,set,0.01,1_7=lingering,land|bair||dair|0=velY,set,0.04,0_1=velY,set,0.03,0_2=velY,set,0.03,0;lingering,land|dtilt|
+effects@idle|0=turnable|dodge||stun||nair||neutral||run|0=turnable_1=turnable_2=turnable_3=turnable_4=turnable_5=turnable_6=turnable_7=turnable|airmove||forward||fair||uair|0=velX,set,0,0;velY,set,-0.05,0;turnable_1=velX,set,0,0;turnable_2=velX,set,0.016,1_3=velX,set,0.016,1_7=lingering,land|bair||dair|0=velY,set,0.08,0_1=velY,set,0.06,0_2=velY,set,0.06,0;lingering,land|dtilt|
 sprites@1

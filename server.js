@@ -15,6 +15,11 @@ var totalPlayers = 0;
 var stockTotal = 5;
 var gameSpeed = 60;
 var maxCollisionDistance = 0.3;
+var terminalVelocityPercentFallPerTick = 0.07;
+var fastFallTerminalVelocity = 1.7;
+var fastFallTerminalVelocityAcceleration = 0.25;
+var airFriction = 0.00025;
+var groundFriction = 0.001;
 var rawData = {};
 var spriteData = {};
 var fighters = [];
@@ -117,10 +122,11 @@ class Projectile {
 }
 
 class Fighter {
-	constructor(name, terminalVelocity, runSpeed, jumps, jumpStrength, weight, spriteWidth, spriteHeight, hurtboxes, hitboxes, groundboxes, frames, animationTimes, attacks, effects, sprites) {
+	constructor(name, terminalVelocity, runSpeed, friction, jumps, jumpStrength, weight, spriteWidth, spriteHeight, hurtboxes, hitboxes, groundboxes, frames, animationTimes, attacks, effects, sprites) {
 		this.name = name;
 		this.terminalVelocity = terminalVelocity;
 		this.runSpeed = runSpeed;
+		this.friction = friction;
 		this.jumps = jumps;
 		this.jumpStrength = jumpStrength;
 		this.weight = weight;
@@ -302,7 +308,7 @@ function shootProjectile(user, projectile) {
 		'owner': user.id,
 		'x': ((tempProjectile['x'].split(';').length>1 && tempProjectile['x'].split(';')[0] == 'player') ? user.x + parseFloat(tempProjectile['x'].split(';')[1]) + user.fighter.spriteWidth/4 + ((user.facing == 'right') ? 0 : parseFloat(tempProjectile['width'])) : parseFloat(tempProjectile['x'])),
 		'y': ((tempProjectile['y'].split(';').length>1 && tempProjectile['y'].split(';')[0] == 'player') ? user.y + parseFloat(tempProjectile['y'].split(';')[1]) + user.fighter.spriteHeight/4 : parseFloat(tempProjectile['y'])),
-		'velocity': [((((tempProjectile['facing'] == 'same') ? user.facing : ((user.facing == 'right') ? 'left' : 'right')) == 'left') ? parseFloat(tempProjectile['velX'].split(':')[0]) : parseFloat(tempProjectile['velX'].split(':')[1]))*(60/gameSpeed), parseFloat(tempProjectile['velY'])*(60/gameSpeed)],
+		'velocity': [((((tempProjectile['facing'] == 'same') ? user.facing : ((user.facing == 'right') ? 'left' : 'right')) == 'left') ? parseFloat(tempProjectile['velX'].split(':')[0]) : parseFloat(tempProjectile['velX'].split(':')[1])), parseFloat(tempProjectile['velY'])],
 		'hitsLeft': tempProjectile['hitsLeft'],
 		'alreadyHit': alreadyHit,
 		'frame': 0,
@@ -399,12 +405,12 @@ function createFighter(data) {
 						lingerString = lingerString.substring(1);
 						effects[rawDataArray[i]][tempFrames[0]].push(function(user){user.lingerFlag=lingerString;});
 					} else if (tempArg[0] == 'turnable') {
-						effects[rawDataArray[i]][tempFrames[0]].push(function(user){if (user.movement.right) {user.facing = 'right';} else if (user.movement.left) {user.facing = 'left';}});
+						effects[rawDataArray[i]][tempFrames[0]].push(function(user){user.turnable=true;});
 					} else if (tempArg[0] == 'x' || tempArg[0] == 'velX' || tempArg[0] == 'y' || tempArg[0] == 'velY') {
 						if (tempArg[1] == 'set') {
-							effects[rawDataArray[i]][tempFrames[0]].push(function(user){user[tempArg[0]]=((((tempArg[0] =='x'||tempArg[0]=='velX')&&user.facing=='left')&&(tempArg[3]==1)) ? -1 : 1)*parseFloat(tempArg[2])*(60/gameSpeed)});
+							effects[rawDataArray[i]][tempFrames[0]].push(function(user){user[tempArg[0]]=((((tempArg[0]=='x'||tempArg[0]=='velX')&&user.facing=='left')&&(tempArg[3]==1)) ? -1 : 1)*parseFloat(tempArg[2])});
 						} else if (tempArg[1] == 'add') {
-							effects[rawDataArray[i]][tempFrames[0]].push(function(user){user[tempArg[0]]+=((((tempArg[0] =='x'||tempArg[0]=='velX')&&user.facing=='left')&&(tempArg[3]==1)) ? -1 : 1)*parseFloat(tempArg[2])*(60/gameSpeed)});
+							effects[rawDataArray[i]][tempFrames[0]].push(function(user){user[tempArg[0]]+=((((tempArg[0]=='x'||tempArg[0]=='velX')&&user.facing=='left')&&(tempArg[3]==1)) ? -1 : 1)*parseFloat(tempArg[2])});
 						}
 					}
 				}
@@ -428,6 +434,7 @@ function createFighter(data) {
 		data['name'],
 		parseFloat(data['terminalVelocity']),
 		parseFloat(data['runSpeed']),
+		parseFloat(data['friction']),
 		parseFloat(data['jumps']),
 		parseFloat(data['jumpStrength']),
 		parseFloat(data['weight']),
@@ -874,7 +881,8 @@ function joinGame(socketID, gameID) {
 		    projectileID: 0,
 		    sprite: 0,
 		    lingerFlag: '',
-		    demo: false
+		    demo: false,
+		    turnable: false
 		};
 
 		renameGame(game);
@@ -894,7 +902,7 @@ function createGame(socketID, v, newFighter, newFighterSprite) {
 		host: socketID,
 		started: false,
 		time: new Date(),
-		stage: stages[0],
+		stage: ((newFighter) ? stages[1] : stages[0]),
 		players: {},
 		fighters: fighterData,
 		visible: v,
@@ -934,7 +942,8 @@ function createGame(socketID, v, newFighter, newFighterSprite) {
 		projectileID: 0,
 		sprite: ((newFighterSprite) ? newFighterSprite : 0),
 		lingerFlag: '',
-		demo: (newFighter != null)
+		demo: (newFighter != null),
+		turnable: false
 	};
 
 	users[socketID].inGame = socketID;
@@ -945,7 +954,7 @@ function createGame(socketID, v, newFighter, newFighterSprite) {
 
 	if (newFighter) {
 		games[socketID].players[socketID]['newProjectiles'] = [];
-		var newProjectileData = splitData(newFighter).effects.split('=projectile,');
+		var newProjectileData = splitData(newFighter).effects.split('projectile,');
 		for (var i=1; i<newProjectileData.length; i++) {
 			if (newProjectileData[i][newProjectileData[i].length-2] == '_') {
 				newProjectileData[i] = newProjectileData[i].slice(0, -2);
@@ -1076,7 +1085,7 @@ setInterval(function() {
 
 			  	for (var a in player.projectiles) {
 			    	var projectile = player.projectiles[a];
-			    	projectile.frame = (projectile.frame + (60/gameSpeed))%(projectile.data.animationTime*projectile.data.frames);
+			    	projectile.frame = (projectile.frame + (game.time - tempTime)/(1000/gameSpeed))%(projectile.data.animationTime*projectile.data.frames);
 			    	var projectileFrame = Math.floor(projectile.frame/projectile.data.animationTime).toString();
 			    	for (var i in projectile.data.hitboxes[projectileFrame]) {
 			      		var hitbox1 = ((projectile.facing == 'left') ? flipHitbox(projectile.data.hitboxes[projectileFrame][i]['hitbox']) : projectile.data.hitboxes[projectileFrame][i]['hitbox']);
@@ -1134,7 +1143,7 @@ setInterval(function() {
 					projectile = player.projectiles[l];
 					projectile.x += projectile.velocity[0];
 					projectile.y += projectile.velocity[1];
-					projectile.velocity[1] += projectile.data.weight*0.00075*(60/gameSpeed)*(60/gameSpeed);
+					projectile.velocity[1] += projectile.data.weight*((game.time - tempTime)/(1000/gameSpeed));
 
 					if (checkOffstage(projectile.x, projectile.y, ((game.started) ? game.stage : previewStage))) {
 						player.projectiles.splice(l, 1);
@@ -1201,16 +1210,18 @@ setInterval(function() {
 						player.animationFrame = 0;
 					}
 
-					player.animationFrame = Math.min(player.animationFrame + (60/gameSpeed), player.fighter.animationTimes[player.action]*player.fighter.frames[player.action]-1);
+					if (player.lingerFlag.length == 0) {
+						player.animationFrame = Math.min(player.animationFrame + (game.time - tempTime)/(1000/gameSpeed), player.fighter.animationTimes[player.action]*player.fighter.frames[player.action]-1);
+					}
 
 					if (!player.grounded) {
-						player.velY += (player.fighter.terminalVelocity/13.5)*(60/gameSpeed)*(60/gameSpeed);
+						player.velY += Math.min((player.fighter.terminalVelocity*terminalVelocityPercentFallPerTick)*((game.time - tempTime)/(1000/gameSpeed)), player.fighter.terminalVelocity);
 					}
 
 					if (player.velX > 0) {
-						player.velX = Math.max(player.velX - (0.0002 + ((player.grounded) ? 0.0004 : 0))*(60/gameSpeed)*(60/gameSpeed), 0);
+						player.velX = Math.max(player.velX - player.fighter.friction*((player.grounded) ? groundFriction : airFriction)*((game.time - tempTime)/(1000/gameSpeed)), 0);
 					} else if (player.velX < 0) {
-						player.velX = Math.min(player.velX + (0.0002 + ((player.grounded) ? 0.0004 : 0))*(60/gameSpeed)*(60/gameSpeed), 0);
+						player.velX = Math.min(player.velX + player.fighter.friction*((player.grounded) ? groundFriction : airFriction)*((game.time - tempTime)/(1000/gameSpeed)), 0);
 					}
 
 					if (player.stun <= 0) {
@@ -1218,8 +1229,11 @@ setInterval(function() {
 							player.action = 'idle';
 						}
 						if (player.movement.left) {
-							if (player.velX > -player.fighter.runSpeed*(60/gameSpeed) && (player.lingerFlag.length == 0 || !player.grounded)) {
-								player.velX -= (player.fighter.runSpeed/1.31)*(60/gameSpeed);
+							if (player.turnable) {
+								player.facing = 'left';
+							}
+							if (player.velX > -player.fighter.runSpeed && (player.lingerFlag.length == 0 || !player.grounded)) {
+								player.velX = Math.max(player.velX - player.fighter.runSpeed*((game.time - tempTime)/(1000/gameSpeed)), -player.fighter.runSpeed);
 							}
 							if (player.action == 'idle' && player.grounded) {
 								player.action = 'run';
@@ -1238,7 +1252,7 @@ setInterval(function() {
 					    	if (!player.upPressed) {
 					      		if (player.jumps > 0 && player.lingerFlag.length == 0) {
 					      			player.grounded = false;
-					      			player.velY = -player.fighter.jumpStrength*(60/gameSpeed);
+					      			player.velY = -player.fighter.jumpStrength;
 					      			player.jumps -= 1;
 					      		}
 					      	}
@@ -1247,8 +1261,11 @@ setInterval(function() {
 				    		player.upPressed = false;
 				    	}
 				    	if (player.movement.right) {
-				    		if (player.velX < player.fighter.runSpeed*(60/gameSpeed) && (player.lingerFlag.length == 0 || !player.grounded)) {
-					    		player.velX += (player.fighter.runSpeed/1.31)*(60/gameSpeed);
+				    		if (player.turnable) {
+								player.facing = 'right';
+							}
+				    		if (player.velX < player.fighter.runSpeed && (player.lingerFlag.length == 0 || !player.grounded)) {
+					    		player.velX = Math.min(player.velX + player.fighter.runSpeed*((game.time - tempTime)/(1000/gameSpeed)), player.fighter.runSpeed);
 					    	}
 				      		if (player.action == 'idle' && player.grounded) {
 								player.action = 'run';
@@ -1264,8 +1281,8 @@ setInterval(function() {
 							}
 						}
 				    	if (player.movement.down) {
-				    		if (!player.grounded && player.velY < player.fighter.terminalVelocity*1.7*(60/gameSpeed)) {
-					      		player.velY += (player.fighter.terminalVelocity/5)*(60/gameSpeed);
+				    		if (!player.grounded && player.velY < player.fighter.terminalVelocity*fastFallTerminalVelocity) {
+					      		player.velY += (player.fighter.terminalVelocity*fastFallTerminalVelocityAcceleration)*((game.time - tempTime)/(1000/gameSpeed));
 					      	}
 				    	}
 				    } else {
@@ -1277,8 +1294,8 @@ setInterval(function() {
 					    }
 				    }
 
-			    	if (player.action != 'stun' && player.velY > player.fighter.terminalVelocity*(60/gameSpeed)) {
-			    		player.velY = Math.max(player.velY - (player.fighter.terminalVelocity/20)*(60/gameSpeed), player.fighter.terminalVelocity*(60/gameSpeed));
+			    	if (player.action != 'stun' && player.velY > player.fighter.terminalVelocity) {
+			    		player.velY = Math.max(player.velY - (player.fighter.terminalVelocity*terminalVelocityPercentFallPerTick)*((game.time - tempTime)/(1000/gameSpeed)), player.fighter.terminalVelocity);
 			    	}
 
 			    	if (player.velY < 0) {
@@ -1289,6 +1306,7 @@ setInterval(function() {
 			    	player.y += player.velY;
 
 					if (frame != player.lastFrame[0] || player.action != player.lastFrame[1] || (endedAction != null && endedAction == player.action && frame == player.lastFrame[0])) {
+						player.turnable = false;
 						for (var effect in player.fighter.effects[player.action][frame]) {
 							player.fighter.effects[player.action][frame][effect](player);
 						}
@@ -1329,7 +1347,7 @@ setInterval(function() {
 					((player.won) ? '1' : '0') + 
 					((player.lost) ? '1' : '0') + 
 					('0' + getActionID(player.action).toString()).slice(-2) + 
-					('0' + player.animationFrame.toString()).slice(-2) + 
+					('0' + Math.floor(player.animationFrame).toString()).slice(-2) + 
 					('0' + getFighterID(player.fighter.name).toString()).slice(-2) + 
 					player.sprite.toString().slice(-1) + 
 					player.stock.toString().slice(-1) + 
@@ -1344,7 +1362,7 @@ setInterval(function() {
 
 					// 2 digit projectile index, 2 digit frame, 6 digit x, 6 digit y, 1 digit facing
 					players += ('0' + projectile.index.toString()).slice(-2) + 
-						('0' + projectile.frame.toString()).slice(-2) + 
+						('0' + Math.floor(projectile.frame).toString()).slice(-2) + 
 						(projectile.x + 4).toFixed(4).slice(-6) + 
 						(projectile.y + 4).toFixed(4).slice(-6) + 
 						((projectile.facing == 'right') ? '1' : '0');

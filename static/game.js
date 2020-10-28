@@ -35,6 +35,7 @@ var fighterJumpStrengthLength = 8;
 var fighterFallSpeedLength = 8;
 var fighterWeightLength = 8;
 var fighterRunSpeedLength = 8;
+var fighterFrictionLength = 8;
 var maxPlayers = 4;
 var pingTime = 2000;
 var gameSpeed = 30;
@@ -68,6 +69,7 @@ var tempFighterJumpStrength = '';
 var tempFighterFallSpeed = '';
 var tempFighterWeight = '';
 var tempFighterRunSpeed = '';
+var tempFighterFriction = '';
 var naming = false;
 var namingGame = false;
 var namingAnimationTime = false;
@@ -94,6 +96,7 @@ var namingFighterJumpStrength = false;
 var namingFighterFallSpeed = false;
 var namingFighterWeight = false;
 var namingFighterRunSpeed = false;
+var namingFighterFriction = false;
 var shift = false;
 var fighterSelect = false;
 var createFighter = false;
@@ -225,6 +228,7 @@ var createFighterButtons = [new Button('back', function() {return canvas.width/6
 	new Button('renameFighterFallSpeed', function() {return 0.127*canvas.width - this.getWidth()/2}, function() {return 0.279*canvas.height;}, function() {context.font = (canvas.width/106.67).toString() + 'px Arial'; return ((namingFighterFallSpeed) ? context.measureText(tempFighterFallSpeed).width + canvas.width/384 : context.measureText(newFighterData['terminalVelocity'].toString()).width + canvas.width/384);}, function() {return canvas.height/43.2;}, 1, function() {if (!namingFighterFallSpeed) {tempFighterFallSpeed = '';} namingFighterFallSpeed = true;}, function() {return true;}, function() {return 'white';}, function() {context.fillStyle = this.textColor; return [((!namingFighterFallSpeed) ? newFighterData['terminalVelocity'].toString() : tempFighterFallSpeed)];}, 'black', function() {return (canvas.width/106.67).toString() + 'px Arial';}, function() {return null;}, function() {return true;}),
 	new Button('renameFighterWeight', function() {return 0.127*canvas.width - this.getWidth()/2}, function() {return 0.314*canvas.height;}, function() {context.font = (canvas.width/106.67).toString() + 'px Arial'; return ((namingFighterWeight) ? context.measureText(tempFighterWeight).width + canvas.width/384 : context.measureText(newFighterData['weight'].toString()).width + canvas.width/384);}, function() {return canvas.height/43.2;}, 1, function() {if (!namingFighterWeight) {tempFighterWeight = '';} namingFighterWeight = true;}, function() {return true;}, function() {return 'white';}, function() {context.fillStyle = this.textColor; return [((!namingFighterWeight) ? newFighterData['weight'].toString() : tempFighterWeight)];}, 'black', function() {return (canvas.width/106.67).toString() + 'px Arial';}, function() {return null;}, function() {return true;}),
 	new Button('renameFighterRunSpeed', function() {return 0.127*canvas.width - this.getWidth()/2}, function() {return 0.349*canvas.height;}, function() {context.font = (canvas.width/106.67).toString() + 'px Arial'; return ((namingFighterRunSpeed) ? context.measureText(tempFighterRunSpeed).width + canvas.width/384 : context.measureText(newFighterData['runSpeed'].toString()).width + canvas.width/384);}, function() {return canvas.height/43.2;}, 1, function() {if (!namingFighterRunSpeed) {tempFighterRunSpeed = '';} namingFighterRunSpeed = true;}, function() {return true;}, function() {return 'white';}, function() {context.fillStyle = this.textColor; return [((!namingFighterRunSpeed) ? newFighterData['runSpeed'].toString() : tempFighterRunSpeed)];}, 'black', function() {return (canvas.width/106.67).toString() + 'px Arial';}, function() {return null;}, function() {return true;}),
+	new Button('renameFighterFriction', function() {return 0.127*canvas.width - this.getWidth()/2}, function() {return 0.384*canvas.height;}, function() {context.font = (canvas.width/106.67).toString() + 'px Arial'; return ((namingFighterFriction) ? context.measureText(tempFighterFriction).width + canvas.width/384 : context.measureText(newFighterData['friction'].toString()).width + canvas.width/384);}, function() {return canvas.height/43.2;}, 1, function() {if (!namingFighterFriction) {tempFighterFriction = '';} namingFighterFriction = true;}, function() {return true;}, function() {return 'white';}, function() {context.fillStyle = this.textColor; return [((!namingFighterFriction) ? newFighterData['friction'].toString() : tempFighterFriction)];}, 'black', function() {return (canvas.width/106.67).toString() + 'px Arial';}, function() {return null;}, function() {return true;}),
 	new Button('addHurtbox', function() {return 2.52*canvas.width/4;}, function() {return canvas.height/4;}, function() {return canvas.width/10;}, function() {return canvas.height/20;}, 3, function() {newFighterDraw = 'hurtbox';}, function() {return true;}, function() {return ((newFighterDraw == 'hurtbox' || newFighterDraw.substring(0, 11) == 'hurtboxDraw') ? 'red' : 'white');}, function() {return ['Add Hurtbox'];}, 'black', function() {return (canvas.width/70).toString() + 'px Arial';}, function() {return null;}, function() {return (newFighterAction != 'stock' && newFighterData['effects'][newFighterAction]);}),
 	new Button('addHitbox', function() {return 2.52*canvas.width/4 + this.getWidth() + canvas.width/120;}, function() {return canvas.height/4;}, function() {return canvas.width/10;}, function() {return canvas.height/20;}, 3, function() {newFighterDraw = 'hitbox';}, function() {return true;}, function() {return ((newFighterDraw == 'hitbox' || newFighterDraw.substring(0, 10) == 'hitboxDraw') ? 'blue' : 'white');}, function() {return ['Add Hitbox'];}, 'black', function() {return (canvas.width/70).toString() + 'px Arial';}, function() {return null;}, function() {return (newFighterAction != 'stock');}),
 	new Button('addGroundbox', function() {return 0.686*canvas.width;}, function() {return canvas.height/14;}, function() {return canvas.width/10;}, function() {return canvas.height/20;}, 3, function() {if (newFighterData['groundboxes'][newFighterAction] && newFighterData['groundboxes'][newFighterAction][newFighterFrame] && newFighterData['groundboxes'][newFighterAction][newFighterFrame].length > 0) {delete newFighterData['groundboxes'][newFighterAction][newFighterFrame];} else {newFighterDraw = 'groundbox';}}, function() {return true;}, function() {return ((newFighterDraw == 'groundbox' || newFighterDraw.substring(0, 10) == 'groundboxDraw') ? 'rgba(181, 101, 29, 1)' : 'white');}, function() {return ((newFighterData['groundboxes'][newFighterAction] && newFighterData['groundboxes'][newFighterAction][newFighterFrame] && newFighterData['groundboxes'][newFighterAction][newFighterFrame].length > 0) ? ['Remove Groundbox'] : ['Add Groundbox']);}, 'black', function() {return (canvas.width/100).toString() + 'px Arial';}, function() {return null;}, function() {return (newFighterAction != 'stock' && newFighterData['effects'][newFighterAction]);}),
@@ -236,34 +240,34 @@ var createFighterButtons = [new Button('back', function() {return canvas.width/6
 	new Button('copyGroundbox', function() {return 0.686*canvas.width;}, function() {return canvas.height/14+2*(this.getHeight()+canvas.height/120);}, function() {return canvas.width/10;}, function() {return canvas.height/20;}, 3, function() {if (!newFighterData['groundboxes'][newFighterAction]) {newFighterData['groundboxes'][newFighterAction] = {};} newFighterData['groundboxes'][newFighterAction][newFighterFrame] = []; if (newFighterData['groundboxes'][newFighterAction][newFighterFrame-1]) {newFighterData['groundboxes'][newFighterAction][newFighterFrame] = newFighterData['groundboxes'][newFighterAction][newFighterFrame-1].slice();}}, function() {return true;}, function() {return 'white';}, function() {return ['Copy Previous', 'Frame Groundbox'];}, 'black', function() {return (canvas.width/90).toString() + 'px Arial';}, function() {return null;}, function() {return (newFighterAction != 'stock' && newFighterData['effects'][newFighterAction]);}),
 	new Button('clearHurtbox', function() {return 2.52*canvas.width/4;}, function() {return canvas.height/4+3*(this.getHeight()+canvas.height/120);}, function() {return canvas.width/10;}, function() {return canvas.height/20;}, 3, function() {if (newFighterData['hurtboxes'][newFighterAction] && newFighterData['hurtboxes'][newFighterAction][newFighterFrame]) {newFighterData['hurtboxes'][newFighterAction][newFighterFrame] = [];}}, function() {return true;}, function() {return 'white';}, function() {return ['Clear Hurtboxes'];}, 'black', function() {return (canvas.width/90).toString() + 'px Arial';}, function() {return null;}, function() {return (newFighterAction != 'stock' && newFighterData['effects'][newFighterAction]);}),
 	new Button('clearHitbox', function() {return 2.52*canvas.width/4 + this.getWidth() + canvas.width/120;}, function() {return canvas.height/4+3*(this.getHeight()+canvas.height/120);}, function() {return canvas.width/10;}, function() {return canvas.height/20;}, 3, function() {if (newFighterData['hitboxes'][newFighterAction] && newFighterData['hitboxes'][newFighterAction][newFighterFrame]) {newFighterData['hitboxes'][newFighterAction][newFighterFrame] = [];}}, function() {return true;}, function() {return 'white';}, function() {return ['Clear Hitboxes'];}, 'black', function() {return (canvas.width/90).toString() + 'px Arial';}, function() {return null;}, function() {return (newFighterAction != 'stock');}),
-	new Button('idle', function() {return 0.40625*canvas.width-this.getWidth();}, function() {return canvas.height/4;}, function() {return 0.09375*canvas.width;}, function() {return canvas.height/26;}, 3, function() {newFighterAction=this.id; newFighterFrame=0; newFighterAnimationFrame=0; var largest=0; if(newFighterData['effects'] && newFighterData['effects'][newFighterAction]) {for(var i in Object.keys(newFighterData['effects'][newFighterAction])) {if (parseInt(Object.keys(newFighterData['effects'][newFighterAction])[i])>largest) {largest=parseInt(Object.keys(newFighterData['effects'][newFighterAction])[i]);}}} while(createFighterButtons.length != createFighterButtonsLength+largest+1) {if (createFighterButtons.length > createFighterButtonsLength+largest+1) {newFighterButtonRemove();} else {newFighterButton();}} switchAttackInputs();}, function() {return true;}, function() {return ((newFighterAction == this.id) ? 'white' : 'rgba(210, 210, 210, 1)');}, function() {return ['Idle'];}, 'black', function() {return (canvas.width/85).toString() + 'px Arial';}, function() {return null;}, function() {return true;}),
-	new Button('airmove', function() {return 0.40625*canvas.width-this.getWidth();}, function() {return canvas.height/4 + this.getHeight();}, function() {return 0.09375*canvas.width;}, function() {return canvas.height/26;}, 3, function() {newFighterAction=this.id; newFighterFrame=0; newFighterAnimationFrame=0; var largest=0; if(newFighterData['effects'] && newFighterData['effects'][newFighterAction]) {for(var i in Object.keys(newFighterData['effects'][newFighterAction])) {if (parseInt(Object.keys(newFighterData['effects'][newFighterAction])[i])>largest) {largest=parseInt(Object.keys(newFighterData['effects'][newFighterAction])[i]);}}} while(createFighterButtons.length != createFighterButtonsLength+largest+1) {if (createFighterButtons.length > createFighterButtonsLength+largest+1) {newFighterButtonRemove();} else {newFighterButton();}} switchAttackInputs();}, function() {return true;}, function() {return ((newFighterAction == this.id) ? 'white' : 'rgba(210, 210, 210, 1)');}, function() {return ['Airmove'];}, 'black', function() {return (canvas.width/85).toString() + 'px Arial';}, function() {return null;}, function() {return true;}),
-	new Button('dodge', function() {return 0.40625*canvas.width-this.getWidth();}, function() {return canvas.height/4 + 2*this.getHeight();}, function() {return 0.09375*canvas.width;}, function() {return canvas.height/26;}, 3, function() {newFighterAction=this.id; newFighterFrame=0; newFighterAnimationFrame=0; var largest=0; if(newFighterData['effects'] && newFighterData['effects'][newFighterAction]) {for(var i in Object.keys(newFighterData['effects'][newFighterAction])) {if (parseInt(Object.keys(newFighterData['effects'][newFighterAction])[i])>largest) {largest=parseInt(Object.keys(newFighterData['effects'][newFighterAction])[i]);}}} while(createFighterButtons.length != createFighterButtonsLength+largest+1) {if (createFighterButtons.length > createFighterButtonsLength+largest+1) {newFighterButtonRemove();} else {newFighterButton();}} switchAttackInputs();}, function() {return true;}, function() {return ((newFighterAction == this.id) ? 'white' : 'rgba(210, 210, 210, 1)');}, function() {return ['Dodge'];}, 'black', function() {return (canvas.width/85).toString() + 'px Arial';}, function() {return null;}, function() {return true;}),
-	new Button('run', function() {return 0.40625*canvas.width-this.getWidth();}, function() {return canvas.height/4 + 3*this.getHeight();}, function() {return 0.09375*canvas.width;}, function() {return canvas.height/26;}, 3, function() {newFighterAction=this.id; newFighterFrame=0; newFighterAnimationFrame=0; var largest=0; if(newFighterData['effects'] && newFighterData['effects'][newFighterAction]) {for(var i in Object.keys(newFighterData['effects'][newFighterAction])) {if (parseInt(Object.keys(newFighterData['effects'][newFighterAction])[i])>largest) {largest=parseInt(Object.keys(newFighterData['effects'][newFighterAction])[i]);}}} while(createFighterButtons.length != createFighterButtonsLength+largest+1) {if (createFighterButtons.length > createFighterButtonsLength+largest+1) {newFighterButtonRemove();} else {newFighterButton();}} switchAttackInputs();}, function() {return true;}, function() {return ((newFighterAction == this.id) ? 'white' : 'rgba(210, 210, 210, 1)');}, function() {return ['Run'];}, 'black', function() {return (canvas.width/85).toString() + 'px Arial';}, function() {return null;}, function() {return true;}),
-	new Button('stun', function() {return 0.40625*canvas.width-this.getWidth();}, function() {return canvas.height/4 + 4*this.getHeight();}, function() {return 0.09375*canvas.width;}, function() {return canvas.height/26;}, 3, function() {newFighterAction=this.id; newFighterFrame=0; newFighterAnimationFrame=0; var largest=0; if(newFighterData['effects'] && newFighterData['effects'][newFighterAction]) {for(var i in Object.keys(newFighterData['effects'][newFighterAction])) {if (parseInt(Object.keys(newFighterData['effects'][newFighterAction])[i])>largest) {largest=parseInt(Object.keys(newFighterData['effects'][newFighterAction])[i]);}}} while(createFighterButtons.length != createFighterButtonsLength+largest+1) {if (createFighterButtons.length > createFighterButtonsLength+largest+1) {newFighterButtonRemove();} else {newFighterButton();}} switchAttackInputs();}, function() {return true;}, function() {return ((newFighterAction == this.id) ? 'white' : 'rgba(210, 210, 210, 1)');}, function() {return ['Stun'];}, 'black', function() {return (canvas.width/85).toString() + 'px Arial';}, function() {return null;}, function() {return true;}),
-	new Button('uair', function() {return 0.40625*canvas.width-this.getWidth();}, function() {return canvas.height/4 + 5*this.getHeight();}, function() {return 0.09375*canvas.width;}, function() {return canvas.height/26;}, 3, function() {newFighterAction=this.id; newFighterFrame=0; newFighterAnimationFrame=0; var largest=0; if(newFighterData['effects'] && newFighterData['effects'][newFighterAction]) {for(var i in Object.keys(newFighterData['effects'][newFighterAction])) {if (parseInt(Object.keys(newFighterData['effects'][newFighterAction])[i])>largest) {largest=parseInt(Object.keys(newFighterData['effects'][newFighterAction])[i]);}}} while(createFighterButtons.length != createFighterButtonsLength+largest+1) {if (createFighterButtons.length > createFighterButtonsLength+largest+1) {newFighterButtonRemove();} else {newFighterButton();}} switchAttackInputs();}, function() {return true;}, function() {return ((newFighterAction == this.id) ? 'white' : 'rgba(210, 210, 210, 1)');}, function() {return ['Up Air'];}, 'black', function() {return (canvas.width/85).toString() + 'px Arial';}, function() {return null;}, function() {return true;}),
-	new Button('dair', function() {return 0.40625*canvas.width-this.getWidth();}, function() {return canvas.height/4 + 6*this.getHeight();}, function() {return 0.09375*canvas.width;}, function() {return canvas.height/26;}, 3, function() {newFighterAction=this.id; newFighterFrame=0; newFighterAnimationFrame=0; var largest=0; if(newFighterData['effects'] && newFighterData['effects'][newFighterAction]) {for(var i in Object.keys(newFighterData['effects'][newFighterAction])) {if (parseInt(Object.keys(newFighterData['effects'][newFighterAction])[i])>largest) {largest=parseInt(Object.keys(newFighterData['effects'][newFighterAction])[i]);}}} while(createFighterButtons.length != createFighterButtonsLength+largest+1) {if (createFighterButtons.length > createFighterButtonsLength+largest+1) {newFighterButtonRemove();} else {newFighterButton();}} switchAttackInputs();}, function() {return true;}, function() {return ((newFighterAction == this.id) ? 'white' : 'rgba(210, 210, 210, 1)');}, function() {return ['Down Air'];}, 'black', function() {return (canvas.width/85).toString() + 'px Arial';}, function() {return null;}, function() {return true;}),
-	new Button('bair', function() {return 0.40625*canvas.width-this.getWidth();}, function() {return canvas.height/4 + 7*this.getHeight();}, function() {return 0.09375*canvas.width;}, function() {return canvas.height/26;}, 3, function() {newFighterAction=this.id; newFighterFrame=0; newFighterAnimationFrame=0; var largest=0; if(newFighterData['effects'] && newFighterData['effects'][newFighterAction]) {for(var i in Object.keys(newFighterData['effects'][newFighterAction])) {if (parseInt(Object.keys(newFighterData['effects'][newFighterAction])[i])>largest) {largest=parseInt(Object.keys(newFighterData['effects'][newFighterAction])[i]);}}} while(createFighterButtons.length != createFighterButtonsLength+largest+1) {if (createFighterButtons.length > createFighterButtonsLength+largest+1) {newFighterButtonRemove();} else {newFighterButton();}} switchAttackInputs();}, function() {return true;}, function() {return ((newFighterAction == this.id) ? 'white' : 'rgba(210, 210, 210, 1)');}, function() {return ['Back Air'];}, 'black', function() {return (canvas.width/85).toString() + 'px Arial';}, function() {return null;}, function() {return true;}),
-	new Button('fair', function() {return 0.40625*canvas.width-this.getWidth();}, function() {return canvas.height/4 + 8*this.getHeight();}, function() {return 0.09375*canvas.width;}, function() {return canvas.height/26;}, 3, function() {newFighterAction=this.id; newFighterFrame=0; newFighterAnimationFrame=0; var largest=0; if(newFighterData['effects'] && newFighterData['effects'][newFighterAction]) {for(var i in Object.keys(newFighterData['effects'][newFighterAction])) {if (parseInt(Object.keys(newFighterData['effects'][newFighterAction])[i])>largest) {largest=parseInt(Object.keys(newFighterData['effects'][newFighterAction])[i]);}}} while(createFighterButtons.length != createFighterButtonsLength+largest+1) {if (createFighterButtons.length > createFighterButtonsLength+largest+1) {newFighterButtonRemove();} else {newFighterButton();}} switchAttackInputs();}, function() {return true;}, function() {return ((newFighterAction == this.id) ? 'white' : 'rgba(210, 210, 210, 1)');}, function() {return ['Forward Air'];}, 'black', function() {return (canvas.width/85).toString() + 'px Arial';}, function() {return null;}, function() {return true;}),
-	new Button('nair', function() {return 0.40625*canvas.width-this.getWidth();}, function() {return canvas.height/4 + 9*this.getHeight();}, function() {return 0.09375*canvas.width;}, function() {return canvas.height/26;}, 3, function() {newFighterAction=this.id; newFighterFrame=0; newFighterAnimationFrame=0; var largest=0; if(newFighterData['effects'] && newFighterData['effects'][newFighterAction]) {for(var i in Object.keys(newFighterData['effects'][newFighterAction])) {if (parseInt(Object.keys(newFighterData['effects'][newFighterAction])[i])>largest) {largest=parseInt(Object.keys(newFighterData['effects'][newFighterAction])[i]);}}} while(createFighterButtons.length != createFighterButtonsLength+largest+1) {if (createFighterButtons.length > createFighterButtonsLength+largest+1) {newFighterButtonRemove();} else {newFighterButton();}} switchAttackInputs();}, function() {return true;}, function() {return ((newFighterAction == this.id) ? 'white' : 'rgba(210, 210, 210, 1)');}, function() {return ['Up Tilt'];}, 'black', function() {return (canvas.width/85).toString() + 'px Arial';}, function() {return null;}, function() {return true;}),
-	new Button('dtilt', function() {return 0.40625*canvas.width-this.getWidth();}, function() {return canvas.height/4 + 10*this.getHeight();}, function() {return 0.09375*canvas.width;}, function() {return canvas.height/26;}, 3, function() {newFighterAction=this.id; newFighterFrame=0; newFighterAnimationFrame=0; var largest=0; if(newFighterData['effects'] && newFighterData['effects'][newFighterAction]) {for(var i in Object.keys(newFighterData['effects'][newFighterAction])) {if (parseInt(Object.keys(newFighterData['effects'][newFighterAction])[i])>largest) {largest=parseInt(Object.keys(newFighterData['effects'][newFighterAction])[i]);}}} while(createFighterButtons.length != createFighterButtonsLength+largest+1) {if (createFighterButtons.length > createFighterButtonsLength+largest+1) {newFighterButtonRemove();} else {newFighterButton();}} switchAttackInputs();}, function() {return true;}, function() {return ((newFighterAction == this.id) ? 'white' : 'rgba(210, 210, 210, 1)');}, function() {return ['Down Tilt'];}, 'black', function() {return (canvas.width/85).toString() + 'px Arial';}, function() {return null;}, function() {return true;}),
-	new Button('forward', function() {return 0.40625*canvas.width-this.getWidth();}, function() {return canvas.height/4 + 11*this.getHeight();}, function() {return 0.09375*canvas.width;}, function() {return canvas.height/26;}, 3, function() {newFighterAction=this.id; newFighterFrame=0; newFighterAnimationFrame=0; var largest=0; if(newFighterData['effects'] && newFighterData['effects'][newFighterAction]) {for(var i in Object.keys(newFighterData['effects'][newFighterAction])) {if (parseInt(Object.keys(newFighterData['effects'][newFighterAction])[i])>largest) {largest=parseInt(Object.keys(newFighterData['effects'][newFighterAction])[i]);}}} while(createFighterButtons.length != createFighterButtonsLength+largest+1) {if (createFighterButtons.length > createFighterButtonsLength+largest+1) {newFighterButtonRemove();} else {newFighterButton();}} switchAttackInputs();}, function() {return true;}, function() {return ((newFighterAction == this.id) ? 'white' : 'rgba(210, 210, 210, 1)');}, function() {return ['Dash Attack'];}, 'black', function() {return (canvas.width/85).toString() + 'px Arial';}, function() {return null;}, function() {return true;}),
-	new Button('neutral', function() {return 0.40625*canvas.width-this.getWidth();}, function() {return canvas.height/4 + 12*this.getHeight();}, function() {return 0.09375*canvas.width;}, function() {return canvas.height/26;}, 3, function() {newFighterAction=this.id; newFighterFrame=0; newFighterAnimationFrame=0; var largest=0; if(newFighterData['effects'] && newFighterData['effects'][newFighterAction]) {for(var i in Object.keys(newFighterData['effects'][newFighterAction])) {if (parseInt(Object.keys(newFighterData['effects'][newFighterAction])[i])>largest) {largest=parseInt(Object.keys(newFighterData['effects'][newFighterAction])[i]);}}} while(createFighterButtons.length != createFighterButtonsLength+largest+1) {if (createFighterButtons.length > createFighterButtonsLength+largest+1) {newFighterButtonRemove();} else {newFighterButton();}} switchAttackInputs();}, function() {return true;}, function() {return ((newFighterAction == this.id) ? 'white' : 'rgba(210, 210, 210, 1)');}, function() {return ['Neutral'];}, 'black', function() {return (canvas.width/85).toString() + 'px Arial';}, function() {return null;}, function() {return true;}),
-	new Button('stock', function() {return 0.40625*canvas.width-this.getWidth();}, function() {return canvas.height/4 + 13.25*this.getHeight();}, function() {return 0.09375*canvas.width;}, function() {return canvas.height/26;}, 3, function() {newFighterAction=this.id; newFighterFrame=0; newFighterAnimationFrame=0; var largest=0; if(newFighterData['effects'] && newFighterData['effects'][newFighterAction]) {for(var i in Object.keys(newFighterData['effects'][newFighterAction])) {if (parseInt(Object.keys(newFighterData['effects'][newFighterAction])[i])>largest) {largest=parseInt(Object.keys(newFighterData['effects'][newFighterAction])[i]);}}} while(createFighterButtons.length != createFighterButtonsLength+largest+1) {if (createFighterButtons.length > createFighterButtonsLength+largest+1) {newFighterButtonRemove();} else {newFighterButton();}} switchAttackInputs();}, function() {return true;}, function() {return ((newFighterAction == this.id) ? 'white' : 'rgba(210, 210, 210, 1)');}, function() {return ['Stock'];}, 'black', function() {return (canvas.width/85).toString() + 'px Arial';}, function() {return null;}, function() {return true;}),
+	new Button('idle', function() {return 0.40625*canvas.width-this.getWidth();}, function() {return canvas.height/4;}, function() {return 0.09375*canvas.width;}, function() {return canvas.height/26;}, 3, function() {newFighterAction=this.id; newFighterFrame=0; newFighterAnimationFrame=0; switchFighterButtons(); switchAttackInputs();}, function() {return true;}, function() {return ((newFighterAction == this.id) ? 'white' : 'rgba(210, 210, 210, 1)');}, function() {return ['Idle'];}, 'black', function() {return (canvas.width/85).toString() + 'px Arial';}, function() {return null;}, function() {return true;}),
+	new Button('airmove', function() {return 0.40625*canvas.width-this.getWidth();}, function() {return canvas.height/4 + this.getHeight();}, function() {return 0.09375*canvas.width;}, function() {return canvas.height/26;}, 3, function() {newFighterAction=this.id; newFighterFrame=0; newFighterAnimationFrame=0; switchFighterButtons(); switchAttackInputs();}, function() {return true;}, function() {return ((newFighterAction == this.id) ? 'white' : 'rgba(210, 210, 210, 1)');}, function() {return ['Airmove'];}, 'black', function() {return (canvas.width/85).toString() + 'px Arial';}, function() {return null;}, function() {return true;}),
+	new Button('dodge', function() {return 0.40625*canvas.width-this.getWidth();}, function() {return canvas.height/4 + 2*this.getHeight();}, function() {return 0.09375*canvas.width;}, function() {return canvas.height/26;}, 3, function() {newFighterAction=this.id; newFighterFrame=0; newFighterAnimationFrame=0; switchFighterButtons(); switchAttackInputs();}, function() {return true;}, function() {return ((newFighterAction == this.id) ? 'white' : 'rgba(210, 210, 210, 1)');}, function() {return ['Dodge'];}, 'black', function() {return (canvas.width/85).toString() + 'px Arial';}, function() {return null;}, function() {return true;}),
+	new Button('run', function() {return 0.40625*canvas.width-this.getWidth();}, function() {return canvas.height/4 + 3*this.getHeight();}, function() {return 0.09375*canvas.width;}, function() {return canvas.height/26;}, 3, function() {newFighterAction=this.id; newFighterFrame=0; newFighterAnimationFrame=0; switchFighterButtons(); switchAttackInputs();}, function() {return true;}, function() {return ((newFighterAction == this.id) ? 'white' : 'rgba(210, 210, 210, 1)');}, function() {return ['Run'];}, 'black', function() {return (canvas.width/85).toString() + 'px Arial';}, function() {return null;}, function() {return true;}),
+	new Button('stun', function() {return 0.40625*canvas.width-this.getWidth();}, function() {return canvas.height/4 + 4*this.getHeight();}, function() {return 0.09375*canvas.width;}, function() {return canvas.height/26;}, 3, function() {newFighterAction=this.id; newFighterFrame=0; newFighterAnimationFrame=0; switchFighterButtons(); switchAttackInputs();}, function() {return true;}, function() {return ((newFighterAction == this.id) ? 'white' : 'rgba(210, 210, 210, 1)');}, function() {return ['Stun'];}, 'black', function() {return (canvas.width/85).toString() + 'px Arial';}, function() {return null;}, function() {return true;}),
+	new Button('uair', function() {return 0.40625*canvas.width-this.getWidth();}, function() {return canvas.height/4 + 5*this.getHeight();}, function() {return 0.09375*canvas.width;}, function() {return canvas.height/26;}, 3, function() {newFighterAction=this.id; newFighterFrame=0; newFighterAnimationFrame=0; switchFighterButtons(); switchAttackInputs();}, function() {return true;}, function() {return ((newFighterAction == this.id) ? 'white' : 'rgba(210, 210, 210, 1)');}, function() {return ['Up Air'];}, 'black', function() {return (canvas.width/85).toString() + 'px Arial';}, function() {return null;}, function() {return true;}),
+	new Button('dair', function() {return 0.40625*canvas.width-this.getWidth();}, function() {return canvas.height/4 + 6*this.getHeight();}, function() {return 0.09375*canvas.width;}, function() {return canvas.height/26;}, 3, function() {newFighterAction=this.id; newFighterFrame=0; newFighterAnimationFrame=0; switchFighterButtons(); switchAttackInputs();}, function() {return true;}, function() {return ((newFighterAction == this.id) ? 'white' : 'rgba(210, 210, 210, 1)');}, function() {return ['Down Air'];}, 'black', function() {return (canvas.width/85).toString() + 'px Arial';}, function() {return null;}, function() {return true;}),
+	new Button('bair', function() {return 0.40625*canvas.width-this.getWidth();}, function() {return canvas.height/4 + 7*this.getHeight();}, function() {return 0.09375*canvas.width;}, function() {return canvas.height/26;}, 3, function() {newFighterAction=this.id; newFighterFrame=0; newFighterAnimationFrame=0; switchFighterButtons(); switchAttackInputs();}, function() {return true;}, function() {return ((newFighterAction == this.id) ? 'white' : 'rgba(210, 210, 210, 1)');}, function() {return ['Back Air'];}, 'black', function() {return (canvas.width/85).toString() + 'px Arial';}, function() {return null;}, function() {return true;}),
+	new Button('fair', function() {return 0.40625*canvas.width-this.getWidth();}, function() {return canvas.height/4 + 8*this.getHeight();}, function() {return 0.09375*canvas.width;}, function() {return canvas.height/26;}, 3, function() {newFighterAction=this.id; newFighterFrame=0; newFighterAnimationFrame=0; switchFighterButtons(); switchAttackInputs();}, function() {return true;}, function() {return ((newFighterAction == this.id) ? 'white' : 'rgba(210, 210, 210, 1)');}, function() {return ['Forward Air'];}, 'black', function() {return (canvas.width/85).toString() + 'px Arial';}, function() {return null;}, function() {return true;}),
+	new Button('nair', function() {return 0.40625*canvas.width-this.getWidth();}, function() {return canvas.height/4 + 9*this.getHeight();}, function() {return 0.09375*canvas.width;}, function() {return canvas.height/26;}, 3, function() {newFighterAction=this.id; newFighterFrame=0; newFighterAnimationFrame=0; switchFighterButtons(); switchAttackInputs();}, function() {return true;}, function() {return ((newFighterAction == this.id) ? 'white' : 'rgba(210, 210, 210, 1)');}, function() {return ['Up Tilt'];}, 'black', function() {return (canvas.width/85).toString() + 'px Arial';}, function() {return null;}, function() {return true;}),
+	new Button('dtilt', function() {return 0.40625*canvas.width-this.getWidth();}, function() {return canvas.height/4 + 10*this.getHeight();}, function() {return 0.09375*canvas.width;}, function() {return canvas.height/26;}, 3, function() {newFighterAction=this.id; newFighterFrame=0; newFighterAnimationFrame=0; switchFighterButtons(); switchAttackInputs();}, function() {return true;}, function() {return ((newFighterAction == this.id) ? 'white' : 'rgba(210, 210, 210, 1)');}, function() {return ['Down Tilt'];}, 'black', function() {return (canvas.width/85).toString() + 'px Arial';}, function() {return null;}, function() {return true;}),
+	new Button('forward', function() {return 0.40625*canvas.width-this.getWidth();}, function() {return canvas.height/4 + 11*this.getHeight();}, function() {return 0.09375*canvas.width;}, function() {return canvas.height/26;}, 3, function() {newFighterAction=this.id; newFighterFrame=0; newFighterAnimationFrame=0; switchFighterButtons(); switchAttackInputs();}, function() {return true;}, function() {return ((newFighterAction == this.id) ? 'white' : 'rgba(210, 210, 210, 1)');}, function() {return ['Dash Attack'];}, 'black', function() {return (canvas.width/85).toString() + 'px Arial';}, function() {return null;}, function() {return true;}),
+	new Button('neutral', function() {return 0.40625*canvas.width-this.getWidth();}, function() {return canvas.height/4 + 12*this.getHeight();}, function() {return 0.09375*canvas.width;}, function() {return canvas.height/26;}, 3, function() {newFighterAction=this.id; newFighterFrame=0; newFighterAnimationFrame=0; switchFighterButtons(); switchAttackInputs();}, function() {return true;}, function() {return ((newFighterAction == this.id) ? 'white' : 'rgba(210, 210, 210, 1)');}, function() {return ['Neutral'];}, 'black', function() {return (canvas.width/85).toString() + 'px Arial';}, function() {return null;}, function() {return true;}),
+	new Button('stock', function() {return 0.40625*canvas.width-this.getWidth();}, function() {return canvas.height/4 + 13.25*this.getHeight();}, function() {return 0.09375*canvas.width;}, function() {return canvas.height/26;}, 3, function() {newFighterAction=this.id; newFighterFrame=0; newFighterAnimationFrame=0; switchAttackInputs();}, function() {return true;}, function() {return ((newFighterAction == this.id) ? 'white' : 'rgba(210, 210, 210, 1)');}, function() {return ['Stock'];}, 'black', function() {return (canvas.width/85).toString() + 'px Arial';}, function() {return null;}, function() {return true;}),
 	new Button('newSkin', function() {return 0.335*canvas.width + ((imgs['new']) ? Object.keys(imgs['new']).length-1 : 0)*this.getWidth();}, function() {return 0.07*canvas.height;}, function() {return canvas.width/40;}, function() {return canvas.height/24;}, 3, function() {createFighterButtonsLength+=1; if(!imgs['new']) {imgs['new'] = {'0': {}};} imgs['new'][Object.keys(imgs['new']).length] = {}; newFighterSprite=Object.keys(imgs['new']).length-1; newSkinButton(newFighterSprite);}, function() {return true;}, function() {return 'white';}, function() {return ['+'];}, 'black', function() {return (canvas.width/85).toString() + 'px Arial';}, function() {return null;}, function() {return true;}),
 	new Button('deleteSkin', function() {return 0.275*canvas.width;}, function() {return 0.07*canvas.height;}, function() {return canvas.width/40;}, function() {return canvas.height/24;}, 3, function() {for (var i in createFighterButtons) {if (createFighterButtons[i].id.startsWith('skin_') && parseInt(createFighterButtons[i].id.split('_')[1]) == Object.keys(imgs['new']).length-1) {createFighterButtons.splice(i, 1); createFighterButtonsLength--; break;}} delete imgs['new'][Object.keys(imgs['new']).length-1]; newFighterSprite = Math.min(newFighterSprite, Object.keys(imgs['new']).length-1);}, function() {return imgs['new'] && Object.keys(imgs['new']).length > 1;}, function() {return 'white';}, function() {return ['-'];}, 'black', function() {return (canvas.width/85).toString() + 'px Arial';}, function() {return null;}, function() {return true;}),
 	new Button('skin_0', function() {return 0.305*canvas.width + this.getWidth()*this.id.split('_')[1];}, function() {return 0.07*canvas.height;}, function() {return canvas.width/40;}, function() {return canvas.height/24;}, 3, function() {newFighterSprite = parseInt(this.id.split('_')[1]);}, function() {return true;}, function() {return ((newFighterSprite == this.id.split('_')[1]) ? 'white' : 'rgba(210, 210, 210, 1)');}, function() {return [this.id.split('_')[1]];}, 'black', function() {return (canvas.width/70).toString() + 'px Arial';}, function() {return null;}, function() {return true;}),
-	new Button('newProjectile', function() {return 0.40625*canvas.width-this.getWidth()*2;}, function() {return canvas.height/4 + newFighterProjectiles*canvas.height/26;}, function() {return 0.09375*canvas.width;}, function() {return canvas.height/26;}, 3, function() {createFighterButtonsLength+=1; newFighterProjectiles+=1; newFighterProjectileNum+=1; newProjectileButton(); newFighterData['projectiles']['Projectile' + newFighterProjectileNum.toString()] = {'x': 0, 'y': 0, 'width': 0.0166667, 'height': 0.05, 'velX': 0.01, 'velY': -0.01, 'weight': 1, 'hitsLeft': 1}; newFighterData['animationTimes']['Projectile' + newFighterProjectileNum.toString()] = 5;}, function() {return true;}, function() {return ((newFighterAction == this.id) ? 'white' : 'rgba(210, 210, 210, 1)');}, function() {return ['New Projectile'];}, 'black', function() {return (canvas.width/85).toString() + 'px Arial';}, function() {return null;}, function() {return true;}),
+	new Button('newProjectile', function() {return 0.40625*canvas.width-this.getWidth()*2;}, function() {return canvas.height/4 + newFighterProjectiles*canvas.height/26;}, function() {return 0.09375*canvas.width;}, function() {return canvas.height/26;}, 3, function() {createFighterButtonsLength+=1; newFighterProjectiles+=1; newFighterProjectileNum+=1; newProjectileButton(); newFighterData['frames']['Projectile' + newFighterProjectileNum.toString()] = 1; newFighterData['projectiles']['Projectile' + newFighterProjectileNum.toString()] = {'x': 0, 'y': 0, 'width': 0.0166667, 'height': 0.05, 'velX': 0.015, 'velY': -0.015, 'weight': 0.001, 'hitsLeft': 1}; newFighterData['animationTimes']['Projectile' + newFighterProjectileNum.toString()] = 5;}, function() {return true;}, function() {return ((newFighterAction == this.id) ? 'white' : 'rgba(210, 210, 210, 1)');}, function() {return ['New Projectile'];}, 'black', function() {return (canvas.width/85).toString() + 'px Arial';}, function() {return null;}, function() {return true;}),
 	new Button('deleteProjectile', function() {return 0.685*canvas.width;}, function() {return 0.865*canvas.height;}, function() {return canvas.width/10;}, function() {return canvas.height/30;}, 3, function() {if (Object.keys(newFighterData['projectiles']).length > 1) {var found; var marker = false; for (var i in newFighterData['projectiles']) {if (marker) {found = i; break;} if (i == newFighterAction) {marker = true;} else {found = i;}} delete newFighterData['projectiles'][newFighterAction]; delete newFighterData['hitboxes'][newFighterAction]; delete newFighterData['attacks'][newFighterAction]; newFighterProjectiles -= 1; for (var i in imgs['new']) {delete imgs['new'][i][newFighterAction];} var prevAction = newFighterAction; var projNum = 0; var hit = false; for (var i in createFighterButtons) {if (createFighterButtons[i].id == prevAction) {createFighterButtons.splice(i, 1); createFighterButtonsLength--; hit = true;} else {var gotcha = false; for (var j in newFighterData['projectiles']) {if (j == createFighterButtons[i].id) {gotcha = true; break;}} if (gotcha) {if (hit) {let num = projNum; createFighterButtons[i]['getY'] = function() {return canvas.height/4 + num*canvas.height/26;};} projNum += 1;} if (createFighterButtons[i].id == found) {createFighterButtons[i].onClick();}}}} else {delete newFighterData['projectiles'][newFighterAction]; delete newFighterData['hitboxes'][newFighterAction]; delete newFighterData['attacks'][newFighterAction]; newFighterProjectiles -= 1; for (var i in imgs['new']) {delete imgs['new'][i][newFighterAction];} var prevAction = newFighterAction; for (var i in createFighterButtons) {if (createFighterButtons[i].id == prevAction) {createFighterButtons.splice(i, 1); createFighterButtonsLength--;} else if (createFighterButtons[i].id == 'idle') {createFighterButtons[i].onClick();}}}}, function() {return true;}, function() {return 'white';}, function() {return ['Delete Projectile'];}, 'black', function() {return (canvas.width/85).toString() + 'px Arial';}, function() {return null;}, function() {return (newFighterAction != 'stock' && !(newFighterData['effects'][newFighterAction]));}),
-	new Button('+', function() {return 0.59375*canvas.width;}, function() {return 3*canvas.height/4 + canvas.height/70;}, function() {return 0.025*canvas.width;}, function() {return canvas.height/22.5;}, 3, function() {newFighterFrame = createFighterButtons.length - createFighterButtonsLength; newFighterButton(); if(newFighterData['effects'][newFighterAction]) {newFighterData['effects'][newFighterAction][newFighterFrame] = {'x': {'add': null, 'set': null, 'facing': 0}, 'y': {'add': null, 'set': null, 'facing': 0}, 'velX': {'add': null, 'set': null, 'facing': 0}, 'velY': {'add': null, 'set': null, 'facing': 0}, 'projectile': null, 'lingering': '', 'turnable': false}; newFighterXEffect[newFighterAction][newFighterFrame] = 0; newFighterYEffect[newFighterAction][newFighterFrame] = 0; newFighterXVelEffect[newFighterAction][newFighterFrame] = 0; newFighterYVelEffect[newFighterAction][newFighterFrame] = 0; newFighterProjectile[newFighterAction][newFighterFrame] = '';}}, function() {return true;}, function() {return 'white';}, function() {return ['+'];}, 'black', function() {return (canvas.width/70).toString() + 'px Arial';}, function() {return null;}, function() {return newFighterAction != 'stock';}),
-	new Button('-', function() {return 0.59375*canvas.width;}, function() {return canvas.height/4 - canvas.height/70 - this.getHeight();}, function() {return 0.025*canvas.width;}, function() {return canvas.height/22.5;}, 3, function() {if (contains(actions, newFighterAction)) {delete newFighterData['effects'][Object.keys(newFighterData['effects'][newFighterAction]).length-1]; delete newFighterXEffect[newFighterAction][Object.keys(newFighterData['effects'][newFighterAction]).length-1]; delete newFighterYEffect[newFighterAction][Object.keys(newFighterData['effects'][newFighterAction]).length-1]; delete newFighterXVelEffect[newFighterAction][Object.keys(newFighterData['effects'][newFighterAction]).length-1]; delete newFighterYVelEffect[newFighterAction][Object.keys(newFighterData['effects'][newFighterAction]).length-1]; delete newFighterProjectile[newFighterAction][Object.keys(newFighterData['effects'][newFighterAction]).length-1]; delete newFighterData['effects'][newFighterAction][Object.keys(newFighterData['effects'][newFighterAction]).length-1];} if(newFighterData['hitboxes'][newFighterAction] && newFighterData['hitboxes'][newFighterAction][Object.keys(newFighterData['hitboxes'][newFighterAction]).length-1]) {delete newFighterData['hitboxes'][newFighterAction][Object.keys(newFighterData['hitboxes'][newFighterAction]).length-1];} if(newFighterData['hurtboxes'][newFighterAction] && newFighterData['hurtboxes'][newFighterAction][Object.keys(newFighterData['hurtboxes'][newFighterAction]).length-1]) {delete newFighterData['hurtboxes'][newFighterAction][Object.keys(newFighterData['hurtboxes'][newFighterAction]).length-1];} if(newFighterData['groundboxes'][newFighterAction] && newFighterData['groundboxes'][newFighterAction][Object.keys(newFighterData['groundboxes'][newFighterAction]).length-1]) {delete newFighterData['groundboxes'][newFighterAction][Object.keys(newFighterData['groundboxes'][newFighterAction]).length-1];} if(imgs['new'] && imgs['new'][0] && imgs['new'][0][newFighterAction] && imgs['new'][0][newFighterAction][Object.keys(imgs['new'][0][newFighterAction]).length-1]) {delete imgs['new'][0][newFighterAction][Object.keys(imgs['new'][0][newFighterAction]).length-1];} newFighterButtonRemove();}, function() {return createFighterButtons.length > createFighterButtonsLength+1;}, function() {return 'white';}, function() {return ['-'];}, 'black', function() {return (canvas.width/70).toString() + 'px Arial';}, function() {return null;}, function() {return newFighterAction != 'stock';}),
+	new Button('+', function() {return 0.59375*canvas.width;}, function() {return 3*canvas.height/4 + canvas.height/70;}, function() {return 0.025*canvas.width;}, function() {return canvas.height/22.5;}, 3, function() {newFighterFrame = newFighterData['frames'][newFighterAction]; newFighterButton(); newFighterData['frames'][newFighterAction]++; if(newFighterData['effects'][newFighterAction]) {newFighterData['effects'][newFighterAction][newFighterFrame] = {'x': {'add': null, 'set': null, 'facing': 0}, 'y': {'add': null, 'set': null, 'facing': 0}, 'velX': {'add': null, 'set': null, 'facing': 0}, 'velY': {'add': null, 'set': null, 'facing': 0}, 'projectile': null, 'lingering': '', 'turnable': false}; newFighterXEffect[newFighterAction][newFighterFrame] = 0; newFighterYEffect[newFighterAction][newFighterFrame] = 0; newFighterXVelEffect[newFighterAction][newFighterFrame] = 0; newFighterYVelEffect[newFighterAction][newFighterFrame] = 0; newFighterProjectile[newFighterAction][newFighterFrame] = '';}}, function() {return true;}, function() {return 'white';}, function() {return ['+'];}, 'black', function() {return (canvas.width/70).toString() + 'px Arial';}, function() {return null;}, function() {return newFighterAction != 'stock';}),
+	new Button('-', function() {return 0.59375*canvas.width;}, function() {return canvas.height/4 - canvas.height/70 - this.getHeight();}, function() {return 0.025*canvas.width;}, function() {return canvas.height/22.5;}, 3, function() {if (contains(actions, newFighterAction)) {delete newFighterData['effects'][newFighterData['frames'][newFighterAction]-1]; delete newFighterXEffect[newFighterAction][newFighterData['frames'][newFighterAction]-1]; delete newFighterYEffect[newFighterAction][newFighterData['frames'][newFighterAction]-1]; delete newFighterXVelEffect[newFighterAction][newFighterData['frames'][newFighterAction]-1]; delete newFighterYVelEffect[newFighterAction][newFighterData['frames'][newFighterAction]-1]; delete newFighterProjectile[newFighterAction][newFighterData['frames'][newFighterAction]-1]; delete newFighterData['effects'][newFighterAction][newFighterData['frames'][newFighterAction]-1];} if(newFighterData['hitboxes'][newFighterAction] && newFighterData['hitboxes'][newFighterAction][newFighterData['frames'][newFighterAction]-1]) {delete newFighterData['hitboxes'][newFighterAction][newFighterData['frames'][newFighterAction]-1];} if(newFighterData['hurtboxes'][newFighterAction] && newFighterData['hurtboxes'][newFighterAction][newFighterData['frames'][newFighterAction]-1]) {delete newFighterData['hurtboxes'][newFighterAction][newFighterData['frames'][newFighterAction]-1];} if(newFighterData['groundboxes'][newFighterAction] && newFighterData['groundboxes'][newFighterAction][newFighterData['frames'][newFighterAction]-1]) {delete newFighterData['groundboxes'][newFighterAction][newFighterData['frames'][newFighterAction]-1];} if(imgs['new'] && imgs['new'][0] && imgs['new'][0][newFighterAction] && imgs['new'][0][newFighterAction][newFighterData['frames'][newFighterAction]-1]) {delete imgs['new'][0][newFighterAction][newFighterData['frames'][newFighterAction]-1];} newFighterData['frames'][newFighterAction]--; newFighterButtonRemove();}, function() {return createFighterButtons.length > createFighterButtonsLength+1;}, function() {return 'white';}, function() {return ['-'];}, 'black', function() {return (canvas.width/70).toString() + 'px Arial';}, function() {return null;}, function() {return newFighterAction != 'stock';}),
 	new Button('0', function() {return 0.59375*canvas.width;}, function() {return canvas.height/4+this.getHeight()*parseInt(this.id);}, function() {return 0.025*canvas.width;}, function() {return (canvas.height/2)/(createFighterButtons.length-createFighterButtonsLength);}, 3, function() {newFighterAnimationFrame = newFighterData['animationTimes'][newFighterAction]*parseInt(this.id); newFighterFrame=parseInt(this.id); if(newFighterData['effects'][newFighterAction] && newFighterData['effects'][newFighterAction][newFighterFrame] == null) {newFighterData['effects'][newFighterAction][newFighterFrame] = {'x': {'add': null, 'set': null, 'facing': 0}, 'y': {'add': null, 'set': null, 'facing': 0}, 'velX': {'add': null, 'set': null, 'facing': 0}, 'velY': {'add': null, 'set': null, 'facing': 0}, 'projectile': null}; newFighterXEffect[newFighterAction][newFighterFrame] = 0; newFighterYEffect[newFighterAction][newFighterFrame] = 0; newFighterXVelEffect[newFighterAction][newFighterFrame] = 0; newFighterYVelEffect[newFighterAction][newFighterFrame] = 0; newFighterProjectile[newFighterAction][newFighterFrame] = '';}}, function() {return true;}, function() {return ((newFighterFrame == this.id) ? 'white' : 'rgba(210, 210, 210, 1)');}, function() {return [this.id];}, 'black', function() {return (canvas.width/70).toString() + 'px Arial';}, function() {return null;}, function() {return newFighterAction != 'stock';})];
 
 var createFighterSliders = [new Slider('width', function() {return ((newFighterAction == 'stock' || newFighterData['effects'][newFighterAction]) ? newFighterData['spriteWidth'] : newFighterData['projectiles'][newFighterAction]['width']);}, function(percent) {if (newFighterAction == 'stock' || newFighterData['effects'][newFighterAction]) {newFighterData['spriteWidth']=percent*(this.max-this.min)+this.min;} else {newFighterData['projectiles'][newFighterAction]['width']=percent*(this.max-this.min)+this.min;}}, 0.002, 0.1875, function() {return canvas.width/3.2;}, function() {return canvas.height/5.4;}, function() {return canvas.width/10;}, function() {return canvas.height/300;}, function() {return canvas.width/200;}, function() {return canvas.height/100;}, function() {return canvas.width/600;}, function() {return 'black';}, function() {return 'white';}, function() {return newFighterAction != 'stock';}),
 	new Slider('height', function() {return ((newFighterAction == 'stock' || newFighterData['effects'][newFighterAction]) ? newFighterData['spriteHeight'] : newFighterData['projectiles'][newFighterAction]['height']);}, function(percent) {if (newFighterAction == 'stock' || newFighterData['effects'][newFighterAction]) {newFighterData['spriteHeight']=percent*(this.max-this.min)+this.min;} else {newFighterData['projectiles'][newFighterAction]['height']=percent*(this.max-this.min)+this.min;}}, 0.002, 0.5, function() {return canvas.width/3.2;}, function() {return canvas.height/4.35;}, function() {return canvas.width/10;}, function() {return canvas.height/300;}, function() {return canvas.width/200;}, function() {return canvas.height/100;}, function() {return canvas.width/600;}, function() {return 'black';}, function() {return 'white';}, function() {return newFighterAction != 'stock';})];
 
 var lobbyButtons = [new Button('createGame', function() {return canvas.width/60;}, function() {return canvas.height/33.75;}, function() {return canvas.width/10;}, function() {return canvas.height/15;}, 3, function() {demo = false; lobbyFrame = 0; socket.emit('createGame', true);}, function() {return true;}, function() {return 'white';}, function() {return ['Create Game'];}, 'black', function() {return (canvas.width/70).toString() + 'px Arial';}, function() {return null;}, function() {return true;}),
-	new Button('createFighter', function() {return 59*canvas.width/60 - this.getWidth();}, function() {return canvas.height/33.75;}, function() {return canvas.width/10;}, function() {return canvas.height/15;}, 3, function() {newFighterData['name'] = 'New Fighter'; newFighterData['jumps'] = 2; newFighterData['jumpStrength'] = 0.017; newFighterData['terminalVelocity'] = 0.01; newFighterData['weight'] = 10000; newFighterData['runSpeed'] = 0.003; newFighterData['hurtboxes'] = {}; newFighterData['hitboxes'] = {}; newFighterData['groundboxes'] = {}; newFighterData['attacks'] = {}; newFighterData['animationTimes'] = {}; newFighterData['spriteWidth'] = 0.05; newFighterData['spriteHeight'] = 0.15; newFighterData['effects'] = {}; newFighterData['projectiles'] = {}; for(var i in actions) {newFighterData['effects'][actions[i]] = {'0': {'x': {'add': null, 'set': null, 'facing': 0}, 'y': {'add': null, 'set': null, 'facing': 0}, 'velX': {'add': null, 'set': null, 'facing': 0}, 'velY': {'add': null, 'set': null, 'facing': 0}, 'projectile': null, 'lingering': '', 'turnable': actions[i] == 'idle' || actions[i] == 'run'}}; newFighterData['animationTimes'][actions[i]] = 5} demo = true; fighterSelect = false; createFighter = true;}, function() {return true;}, function() {return 'white';}, function() {return ['Create Fighter'];}, 'black', function() {return (canvas.width/70).toString() + 'px Arial';}, function() {return null;}, function() {return true;})];
+	new Button('createFighter', function() {return 59*canvas.width/60 - this.getWidth();}, function() {return canvas.height/33.75;}, function() {return canvas.width/10;}, function() {return canvas.height/15;}, 3, function() {if (Object.keys(newFighterData).length == 0) {newFighterData['name'] = 'New Fighter'; newFighterData['jumps'] = 2; newFighterData['jumpStrength'] = 0.03; newFighterData['terminalVelocity'] = 0.02; newFighterData['weight'] = 10000; newFighterData['runSpeed'] = 0.007; newFighterData['friction'] = 1; newFighterData['frames'] = {}; newFighterData['hurtboxes'] = {}; newFighterData['hitboxes'] = {}; newFighterData['groundboxes'] = {}; newFighterData['attacks'] = {}; newFighterData['animationTimes'] = {}; newFighterData['spriteWidth'] = 0.05; newFighterData['spriteHeight'] = 0.15; newFighterData['effects'] = {}; newFighterData['projectiles'] = {}; for(var i in actions) {newFighterData['frames'][actions[i]] = 1; newFighterData['effects'][actions[i]] = {'0': {'x': {'add': null, 'set': null, 'facing': 0}, 'y': {'add': null, 'set': null, 'facing': 0}, 'velX': {'add': null, 'set': null, 'facing': 0}, 'velY': {'add': null, 'set': null, 'facing': 0}, 'projectile': null, 'lingering': '', 'turnable': actions[i] == 'idle' || actions[i] == 'run'}}; newFighterData['animationTimes'][actions[i]] = 5;}} demo = true; fighterSelect = false; createFighter = true;}, function() {return true;}, function() {return 'white';}, function() {return ['Create Fighter'];}, 'black', function() {return (canvas.width/70).toString() + 'px Arial';}, function() {return null;}, function() {return true;})];
 
 var preGameButtons = [new Button('leaveLobby', function() {return canvas.width/60;}, function() {return canvas.height/33.75;}, function() {return canvas.width/10;}, function() {return canvas.height/20;}, 3, function() {fighterSelect = false; lobbyFrame = 0; socket.emit('leaveGame');}, function() {return true;}, function() {return 'white';}, function() {return ['Leave Lobby'];}, 'black', function() {return (canvas.width/80).toString() + 'px Arial';}, function() {return null;}, function() {return true;}),
 	new Button('startGame', function() {return canvas.width/2 - canvas.width/10;}, function() {return canvas.height/1.2;}, function() {return canvas.width/5;}, function() {return canvas.height/10;}, 6, function() {lobbyFrame = 0; socket.emit('startGame');}, function() {return true;}, function() {return 'green';}, function() {return ['Fight!'];}, 'black', function() {return (canvas.width/60).toString() + 'px Arial';}, function() {return null;}, function() {return true;}),
@@ -424,7 +428,15 @@ function createFighterFromText(data) {
 				for (var l=0; l<tempEffect.length; l++) {
 					let tempArg = tempEffect[l].split(',');
 					if (tempArg[0] == 'projectile') {
-						effects[rawDataArray[i]][tempFrames[0]]['projectile'] = tempArg[1];
+						if (effects[rawDataArray[i]][tempFrames[0]]['projectile'] == null) {
+							effects[rawDataArray[i]][tempFrames[0]]['projectile'] = '';
+						}
+
+						if (effects[rawDataArray[i]][tempFrames[0]]['projectile'] != '') {
+							effects[rawDataArray[i]][tempFrames[0]]['projectile'] += ',';
+						}
+
+						effects[rawDataArray[i]][tempFrames[0]]['projectile'] += tempArg[1];
 					} if (tempArg[0] == 'lingering') {
 						effects[rawDataArray[i]][tempFrames[0]]['lingering'] = tempArg[1];
 					} if (tempArg[0] == 'turnable') {
@@ -456,6 +468,7 @@ function createFighterFromText(data) {
 		'terminalVelocity': parseFloat(data['terminalVelocity']),
 		'weight': parseFloat(data['weight']),
 		'runSpeed': parseFloat(data['runSpeed']),
+		'friction': parseFloat(data['friction']),
 		'hurtboxes': hurtboxes,
 		'hitboxes': hitboxes,
 		'groundboxes': groundboxes,
@@ -526,7 +539,7 @@ function encodeNewProjectile(proj) {
 		'\nweight@' + newFighterData['projectiles'][proj]['weight'].toString() +
 		'\nanimationTime@' + newFighterData['animationTimes'][proj] +
 		'\nhitsLeft@' + newFighterData['projectiles'][proj]['hitsLeft'] +
-		'\nframes@' + Object.keys(imgs['new'][0][proj]).length +
+		'\nframes@' + newFighterData['frames'][proj] +
 		'\nhitboxes@';
 
 	for(var j in newFighterData['hitboxes'][proj]) {
@@ -578,6 +591,7 @@ function encodeNewFighter() {
 	var newFighterString = 'name@' + newFighterData['name'] +
 		'\nterminalVelocity@' + newFighterData['terminalVelocity'].toString() +
 		'\nrunSpeed@' + newFighterData['runSpeed'].toString() +
+		'\nfriction@' + newFighterData['friction'].toString() +
 		'\njumps@' + newFighterData['jumps'].toString() +
 		'\njumpStrength@' + newFighterData['jumpStrength'].toString() +
 		'\nweight@' + newFighterData['weight'].toString() +
@@ -672,8 +686,8 @@ function encodeNewFighter() {
 	}
 
 	newFighterString = newFighterString + '\nframes@';
-	for(var i in newFighterData['effects']) {
-		newFighterString = newFighterString + i + '|' + Object.keys(newFighterData['effects'][i]).length.toString() + '|';
+	for(var i in actions) {
+		newFighterString = newFighterString + actions[i] + '|' + newFighterData['frames'][actions[i]].toString() + '|';
 	}
 	if(newFighterString[newFighterString.length-1] != '@') {
 		newFighterString = newFighterString.slice(0, -1);
@@ -713,8 +727,11 @@ function encodeNewFighter() {
 			for(var k in newFighterData['effects'][i][j]) {
 				if(k == 'projectile') {
 					if(newFighterData['effects'][i][j][k] != null) {
-						newFighterString = newFighterString + ((frameFound) ? '' : (((j == 0) ? '' : '_') + j.toString() + '=')) + k + ',' + newFighterData['effects'][i][j][k] + ';';
-						frameFound = true;
+						newFighterString = newFighterString + ((frameFound) ? '' : (((j == 0) ? '' : '_') + j.toString() + '='));
+						for (var l in newFighterData['effects'][i][j][k].split(',')) {
+							newFighterString = newFighterString + k + ',' + newFighterData['effects'][i][j][k].split(',')[l] + ';';
+							frameFound = true;
+						}
 					}
 				} else if(k == 'lingering') {
 					if(newFighterData['effects'][i][j][k].length > 0) {
@@ -807,6 +824,7 @@ function compileNewFighterImages(data) {
 
 function newFighterLoadExisting(ind) {
 	var fighter = fighters[ind];
+	newFighterFrame = 0;
 	newFighterAction = 'idle';
 	newFighterProjectiles = 0;
 
@@ -844,15 +862,21 @@ function newFighterLoadExisting(ind) {
 		}
 	}
 
-	newFighterData['name'] = fighter.name + " Copy";
+	newFighterData['name'] = fighter.name + ' Copy';
 	newFighterData['jumps'] = fighter.jumps;
 	newFighterData['jumpStrength'] = fighter.jumpStrength;
 	newFighterData['terminalVelocity'] = fighter.terminalVelocity;
 	newFighterData['weight'] = fighter.weight;
 	newFighterData['runSpeed'] = fighter.runSpeed;
+	newFighterData['friction'] = fighter.friction;
 	newFighterData['spriteWidth'] = fighter.spriteWidth;
 	newFighterData['spriteHeight'] = fighter.spriteHeight;
 	newFighterData['projectiles'] = {};
+
+	newFighterData['frames'] = {};
+	for(var i in fighter.frames) {
+		newFighterData['frames'][i] = fighter.frames[i];
+	}
 
 	newFighterData['hurtboxes'] = {};
 	for(var i in fighter.hurtboxes) {
@@ -1011,6 +1035,7 @@ function newFighterLoadExisting(ind) {
 
 					for (var k in projectiles) {
 						if(projectiles[k].name == fighter['effects'][i][j]['projectile']) {
+							newFighterData['frames'][fighter['effects'][i][j]['projectile']] = projectiles[k].frames;
 							newFighterData['projectiles'][fighter['effects'][i][j]['projectile']] = {'x': parseFloat(projectiles[k]['x'].split(';')[1]), 'y': parseFloat(projectiles[k]['y'].split(';')[1]), 'width': projectiles[k]['width'], 'height': projectiles[k]['height'], 'velX': parseFloat(projectiles[k]['velX'].split(':')[1]), 'velY': parseFloat(projectiles[k]['velY']), 'weight': projectiles[k]['weight'], 'hitsLeft': projectiles[k]['hitsLeft']};
 							
 							newFighterData['attacks'][projectiles[k].name] = [];
@@ -1077,8 +1102,8 @@ function newFighterLoadExisting(ind) {
 		}
 	}
 
-	while(createFighterButtons.length != createFighterButtonsLength+Object.keys(imgs['new'][0][newFighterAction]).length) {
-		if (createFighterButtons.length > createFighterButtonsLength+Object.keys(imgs['new'][0][newFighterAction]).length) {
+	while(createFighterButtons.length != createFighterButtonsLength + newFighterData['frames'][newFighterAction]) {
+		if (createFighterButtons.length > createFighterButtonsLength + newFighterData['frames'][newFighterAction]) {
 			newFighterButtonRemove();
 		} else {
 			newFighterButton();
@@ -1198,20 +1223,26 @@ function newFighterButton() {
 
 function newProjectileButton(name) {
 	let num = newFighterProjectiles;
-	createFighterButtons.splice(createFighterButtonsLength-3, 0, new Button(((name) ? name : 'Projectile' + newFighterProjectileNum.toString()), function() {return 0.40625*canvas.width-this.getWidth()*2;}, function() {return canvas.height/4 + (num-1)*canvas.height/26;}, function() {return 0.09375*canvas.width;}, function() {return canvas.height/26;}, 3, function() {newFighterAction=this.id; newFighterFrame=0; newFighterAnimationFrame=0; var largest=0; if(newFighterData['effects'] && newFighterData['effects'][newFighterAction]) {for(var i in Object.keys(newFighterData['effects'][newFighterAction])) {if (parseInt(Object.keys(newFighterData['effects'][newFighterAction])[i])>largest) {largest=parseInt(Object.keys(newFighterData['effects'][newFighterAction])[i]);}}} while(createFighterButtons.length != createFighterButtonsLength+largest+1) {if (createFighterButtons.length > createFighterButtonsLength+largest+1) {newFighterButtonRemove();} else {newFighterButton();}} switchAttackInputs();}, function() {return true;}, function() {return ((newFighterAction == this.id) ? 'white' : 'rgba(210, 210, 210, 1)');}, function() {return [this.id.toString()];}, 'black', function() {return (canvas.width/85).toString() + 'px Arial';}, function() {return null;}, function() {return true;}));
+	createFighterButtons.splice(createFighterButtonsLength-3, 0, new Button(((name) ? name : 'Projectile' + newFighterProjectileNum.toString()), function() {return 0.40625*canvas.width-this.getWidth()*2;}, function() {return canvas.height/4 + (num-1)*canvas.height/26;}, function() {return 0.09375*canvas.width;}, function() {return canvas.height/26;}, 3, function() {newFighterAction=this.id; newFighterFrame=0; newFighterAnimationFrame=0; switchFighterButtons(); switchAttackInputs();}, function() {return true;}, function() {return ((newFighterAction == this.id) ? 'white' : 'rgba(210, 210, 210, 1)');}, function() {return [this.id.toString()];}, 'black', function() {return (canvas.width/85).toString() + 'px Arial';}, function() {return null;}, function() {return true;}));
 }
 
 function newFighterButtonRemove() {
-	if (imgs && imgs['new'] && imgs['new'][newFighterSprite] && imgs['new'][newFighterSprite][newFighterAction] && imgs['new'][newFighterSprite][newFighterAction][parseInt(createFighterButtons[createFighterButtons.length-1].id)]) {
-		imgs['new'][newFighterSprite][newFighterAction][parseInt(createFighterButtons[createFighterButtons.length-1].id)] = null;
+	if (newFighterFrame == newFighterData['frames'][newFighterAction]) {
+		newFighterFrame = newFighterData['frames'][newFighterAction]-1;
 	}
-
-	if (newFighterFrame == parseInt(createFighterButtons[createFighterButtons.length-1].id)) {
-		newFighterFrame = parseInt(createFighterButtons[createFighterButtons.length-1].id)-1;
-	}
+	newFighterAnimationFrame = (newFighterAnimationFrame)%(newFighterData['animationTimes'][newFighterAction]*createFighterButtons.length-createFighterButtonsLength);
 
 	createFighterButtons.splice(createFighterButtons.length-1, 1);
-	newFighterAnimationFrame = (newFighterAnimationFrame)%(newFighterData['animationTimes'][newFighterAction]*createFighterButtons.length-createFighterButtonsLength);
+}
+
+function switchFighterButtons() {
+	while(createFighterButtons.length != createFighterButtonsLength + newFighterData['frames'][newFighterAction]) {
+		if (createFighterButtons.length > createFighterButtonsLength + newFighterData['frames'][newFighterAction]) {
+			newFighterButtonRemove();
+		} else {
+			newFighterButton();
+		}
+	}
 }
 
 function switchAttackInputs() {
@@ -1367,14 +1398,15 @@ function uploadProjectiles(fileLoadedEvent, textData, projFrames, imgFound, proj
 
 	createFighterButtonsLength += 1;
 	newFighterProjectiles += 1;
+	newFighterData['frames'][tempProjectile.name] = tempProjectile.frames;
 	newProjectileButton(tempProjectile.name);
 
 	newFighterData['projectiles'][tempProjectile.name] = {
-		'x': tempProjectile['x'],
-		'y': tempProjectile['y'],
+		'x': parseFloat(tempProjectile['x'].split(';')[1]),
+		'y': parseFloat(tempProjectile['y'].split(';')[1]),
 		'width': tempProjectile['width'],
 		'height': tempProjectile['height'],
-		'velX': tempProjectile['velX'],
+		'velX': parseFloat(tempProjectile['velX'].split(':')[1]),
 		'velY': tempProjectile['velY'],
 		'weight': tempProjectile['weight'],
 		'hitsLeft': tempProjectile['hitsLeft']};
@@ -1489,7 +1521,7 @@ function render() {
 				if (debug) {
 					for (var i in tempPlayer.fighter.hitboxes[tempPlayer.action][drawFrame]) {
 						var hitbox = ((tempPlayer.facing == 'left') ? flipHitbox(tempPlayer.fighter.hitboxes[tempPlayer.action][drawFrame][i]['hitbox']) : tempPlayer.fighter.hitboxes[tempPlayer.action][drawFrame][i]['hitbox']);
-						context.lineWidth = 1;
+						context.lineWidth = 2;
 						context.strokeStyle = 'rgba(0, 0, 255, 1)';
 						context.beginPath();
 						context.rect(tempPlayer.x*canvas.width + hitbox[0]*spriteWidth, tempPlayer.y*canvas.height + hitbox[1]*spriteHeight, (hitbox[2] - hitbox[0])*spriteWidth, (hitbox[3] - hitbox[1])*spriteHeight);
@@ -1499,7 +1531,7 @@ function render() {
 
 					for (var i in tempPlayer.fighter.hurtboxes[tempPlayer.action][drawFrame]) {
 						var hitbox = ((tempPlayer.facing == 'left') ? flipHitbox(tempPlayer.fighter.hurtboxes[tempPlayer.action][drawFrame][i]) : tempPlayer.fighter.hurtboxes[tempPlayer.action][drawFrame][i]);
-						context.lineWidth = 1;
+						context.lineWidth = 2;
 						context.strokeStyle = 'rgba(255, 0, 0, 1)';
 						context.beginPath();
 						context.rect(tempPlayer.x*canvas.width + hitbox[0]*spriteWidth, tempPlayer.y*canvas.height + hitbox[1]*spriteHeight, (hitbox[2] - hitbox[0])*spriteWidth, (hitbox[3] - hitbox[1])*spriteHeight);
@@ -1512,6 +1544,7 @@ function render() {
 						drawProjectileFrame = Math.floor(projectile.frame/projectiles[projectile.index].animationTime);
 						for (var j in projectiles[projectile.index].hitboxes[drawProjectileFrame]) {
 							var hitbox = ((projectile.facing == 'left') ? flipHitbox(projectiles[projectile.index].hitboxes[drawProjectileFrame][j]['hitbox']) : projectiles[projectile.index].hitboxes[drawProjectileFrame][j]['hitbox']);
+							context.lineWidth = 2;
 							context.strokeStyle = 'rgba(0, 0, 255, 1)';
 							context.beginPath();
 							context.rect(projectile.x*canvas.width + hitbox[0]*projectiles[projectile.index].width*canvas.width, projectile.y*canvas.height + hitbox[1]*projectiles[projectile.index].height*canvas.height, (hitbox[2] - hitbox[0])*projectiles[projectile.index].width*canvas.width, (hitbox[3] - hitbox[1])*projectiles[projectile.index].height*canvas.height);
@@ -1769,6 +1802,7 @@ function render() {
 
 							while (i>createFighterButtons.length - createFighterButtonsLength - 1) {
 								newFighterButton();
+								newFighterData['frames'][newFighterAction]++;
 
 								if(newFighterData['effects'][newFighterAction]) {
 									newFighterData['effects'][newFighterAction][createFighterButtons.length - createFighterButtonsLength - 1] =
@@ -2089,6 +2123,7 @@ function render() {
 		context.fillText('Fall Speed', 0.015*canvas.width, 0.3*canvas.height);
 		context.fillText('Weight', 0.015*canvas.width, 0.335*canvas.height);
 		context.fillText('Run Speed', 0.015*canvas.width, 0.37*canvas.height);
+		context.fillText('Friction', 0.015*canvas.width, 0.405*canvas.height);
 
 
 		for (var i in createFighterSliders) {
@@ -2299,6 +2334,12 @@ function render() {
 			context.font = (canvas.width/106.67).toString() + 'px Arial';
 			context.fillStyle = 'black';
 			context.fillRect(0.127*canvas.width + context.measureText(tempFighterRunSpeed).width/2 + 1, 0.349*canvas.height, canvas.width/128, canvas.height/43.2);
+		}
+
+		if (namingFighterFriction) {
+			context.font = (canvas.width/106.67).toString() + 'px Arial';
+			context.fillStyle = 'black';
+			context.fillRect(0.127*canvas.width + context.measureText(tempFighterFriction).width/2 + 1, 0.384*canvas.height, canvas.width/128, canvas.height/43.2);
 		}
 	}
 
@@ -2867,6 +2908,11 @@ document.addEventListener('mouseup', function(event) {
 		}
 		tempFighterRunSpeed = '';
 
+		if (tempFighterFriction != '' && !isNaN(parseFloat(tempFighterFriction))) {
+			newFighterData['friction'] = parseFloat(tempFighterFriction);
+		}
+		tempFighterFriction = '';
+
 		if(namingProjectileName && tempProjectileName != '' && !contains(Object.keys(newFighterData['projectiles']), tempProjectileName) && !contains(Object.keys(newFighterData['effects']), tempProjectileName) && isNaN(tempProjectileName) && !createFighterButtonIDExists(tempProjectileName) && !tempProjectileName.includes(',')) {
 			for(var i in newFighterData) {
 				if(typeof newFighterData[i] === 'object' && contains(Object.keys(newFighterData[i]), newFighterAction)) {
@@ -2916,6 +2962,7 @@ document.addEventListener('mouseup', function(event) {
 		namingFighterFallSpeed = false;
 		namingFighterWeight = false;
 		namingFighterRunSpeed = false;
+		namingFighterFriction = false;
 
 		if (game && game != null && game.started) {
 			for (var i in gameButtons) {
@@ -3153,6 +3200,8 @@ document.addEventListener('keydown', function(event) {
 		tempFighterWeight = tempFighterWeight + keycode(event.keyCode, shift);
 	} else if(namingFighterRunSpeed && tempFighterRunSpeed.length < fighterRunSpeedLength) {
 		tempFighterRunSpeed = tempFighterRunSpeed + keycode(event.keyCode, shift);
+	} else if(namingFighterFriction && tempFighterFriction.length < fighterFrictionLength) {
+		tempFighterFriction = tempFighterFriction + keycode(event.keyCode, shift);
 	}
 
 	switch (event.keyCode) {
@@ -3209,6 +3258,8 @@ document.addEventListener('keydown', function(event) {
 				tempFighterWeight = tempFighterWeight.slice(0, -1);
 			} else if(namingFighterRunSpeed && tempFighterRunSpeed.length > 0) {
 				tempFighterRunSpeed = tempFighterRunSpeed.slice(0, -1);
+			} else if(namingFighterFriction && tempFighterFriction.length > 0) {
+				tempFighterFriction = tempFighterFriction.slice(0, -1);
 			} else if(newFighterBoxSelected[0] != null) {
 				if (newFighterBoxSelected[1] == 'groundbox') {
 					delete newFighterData[newFighterBoxSelected[1]+'es'][newFighterAction][newFighterFrame];
@@ -3356,6 +3407,9 @@ document.addEventListener('keydown', function(event) {
 			} else if (tempFighterRunSpeed != '' && !isNaN(parseFloat(tempFighterRunSpeed))) {
 				newFighterData['runSpeed'] = parseFloat(tempFighterRunSpeed);
 				tempFighterRunSpeed = '';
+			} else if (tempFighterFriction != '' && !isNaN(parseFloat(tempFighterFriction))) {
+				newFighterData['friction'] = parseFloat(tempFighterFriction);
+				tempFighterFriction = '';
 			}
 
 			naming = false;
@@ -3384,6 +3438,7 @@ document.addEventListener('keydown', function(event) {
 			namingFighterFallSpeed = false;
 			namingFighterWeight = false;
 			namingFighterRunSpeed = false;
+			namingFighterFriction = false;
 			break;
 		case 32: // Space
 			if (game && game != null && !naming && !namingGame) {

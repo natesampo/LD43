@@ -1,8 +1,9 @@
 name@Randall
-terminalVelocity@0.012
-runSpeed@0.0025
+terminalVelocity@0.02
+runSpeed@0.0055
+friction@1
 jumps@2
-jumpStrength@0.017
+jumpStrength@0.03
 weight@15000
 spriteWidth@0.05
 spriteHeight@0.15
@@ -12,5 +13,5 @@ groundboxes@idle|0_0.0312,0.2695,0.9271,0.9850_1_0.0312,0.2695,0.9271,0.9850_2_0
 frames@idle|8|dodge|1|stun|1|nair|5|neutral|3|run|1|airmove|1|forward|7|fair|6|uair|4|bair|3|dair|4|dtilt|2
 animationTimes@idle|5|dodge|5|stun|5|nair|5|neutral|5|run|5|airmove|5|forward|5|fair|5|uair|5|bair|5|dair|5|dtilt|5
 attacks@nair|0_10;5,-20;5|neutral|0_5;6,-1;1|bair|0_8;-15,5;4|dair|0_7;0,20;3|uair|0_10;0,-17;3|forward|0_8;5,-5;2_1_10;3,-12;3|fair|0_8;5,-5;2_1_9;9,0;3
-effects@idle|0=turnable|dodge||stun||nair||neutral||run|0=turnable|airmove||forward|0=velX,set,0.02,1_1=velX,set,0.02,1_2=velX,set,0.017,1_3=velX,set,0.007,1_4=velX,set,0,0_5=velX,set,0,0_6=velX,set,0,0|fair||uair||bair||dair|1=velY,set,-0.008,0|dtilt|
+effects@idle|0=turnable|dodge||stun||nair||neutral||run|0=turnable|airmove||forward|0=velX,set,0.033,1_1=velX,set,0.03,1_2=velX,set,0.023,1_3=velX,set,0.01,1_4=velX,set,0,0_5=velX,set,0,0_6=velX,set,0,0|fair||uair||bair||dair|1=velY,set,-0.02,0|dtilt|
 sprites@1

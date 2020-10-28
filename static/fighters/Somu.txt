@@ -1,8 +1,9 @@
 name@Somu
-terminalVelocity@0.01
-runSpeed@0.003
+terminalVelocity@0.02
+runSpeed@0.007
+friction@1
 jumps@1
-jumpStrength@0.017
+jumpStrength@0.03
 weight@10000
 spriteWidth@0.05
 spriteHeight@0.15

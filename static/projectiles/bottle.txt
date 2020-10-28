@@ -4,9 +4,9 @@ x@player;0
 y@player;-0.03
 width@0.0166667
 height@0.05
-velX@-0.01:0.01
-velY@-0.01
-weight@1
+velX@-0.015:0.015
+velY@-0.015
+weight@0.001
 animationTime@5
 hitsLeft@1
 frames@4
