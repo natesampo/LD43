@@ -13,6 +13,7 @@ var port = 5000;
 var maxPlayers = 4;
 var totalPlayers = 0;
 var stockTotal = 5;
+var speedMultiplier = 0.5;
 var gameSpeed = 60;
 var maxCollisionDistance = 0.3;
 var terminalVelocityPercentFallPerTick = 0.07;
@@ -971,7 +972,7 @@ function createGame(socketID, v, newFighter, newFighterSprite) {
 			}
 
 			if (index == -1) {
-				games[socketID].players[socketID]['newProjectiles'].push(createProjectile(splitData(newProjectileData[i].split(';')[0].split('|')[0].replace(/\\/g, '\n').replace(/\?/g, '@').replace(/\`/g, ';').replace(/\~/g, ':').replace(/\+/g, ',').replace(/\$/g, '=').replace(/\*/, '_'))));
+				games[socketID].players[socketID]['newProjectiles'].push(createProjectile(splitData(newProjectileData[i].split(';')[0].split('|')[0].replace(/\\/g, '\n').replace(/\?/g, '@').replace(/\`/g, ';').replace(/\~/g, ':').replace(/\+/g, ',').replace(/\$/g, '=').replace(/\*/g, '_'))));
 			} else {
 				games[socketID].players[socketID]['newProjectiles'].push(projectiles[index]);
 			}
@@ -1143,8 +1144,8 @@ setInterval(function() {
 
 				for (var l in player.projectiles) {
 					projectile = player.projectiles[l];
-					projectile.x += projectile.velocity[0];
-					projectile.y += projectile.velocity[1];
+					projectile.x += projectile.velocity[0]*((game.time - tempTime)/(1000/gameSpeed))*speedMultiplier;
+					projectile.y += projectile.velocity[1]*((game.time - tempTime)/(1000/gameSpeed))*speedMultiplier;
 					projectile.velocity[1] += projectile.data.weight*((game.time - tempTime)/(1000/gameSpeed));
 
 					if (checkOffstage(projectile.x, projectile.y, ((game.started) ? game.stage : previewStage))) {
@@ -1304,8 +1305,8 @@ setInterval(function() {
 			    		player.grounded = false;
 			    	}
 
-			    	player.x += player.velX;
-			    	player.y += player.velY;
+			    	player.x += player.velX*((game.time - tempTime)/(1000/gameSpeed))*speedMultiplier;
+			    	player.y += player.velY*((game.time - tempTime)/(1000/gameSpeed))*speedMultiplier;
 
 					if (frame != player.lastFrame[0] || player.action != player.lastFrame[1] || (endedAction != null && endedAction == player.action && frame == player.lastFrame[0])) {
 						player.turnable = false;

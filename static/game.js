@@ -11,6 +11,7 @@ var socket = io();
 var debug = false;
 var cameraBoundX = 0.2;
 var cameraBoundY = 0.2;
+var cameraYBias = 0.05;
 
 var nameLength = 20;
 var gameNameLength = 20;
@@ -360,49 +361,55 @@ function createFighterFromText(data) {
 
 	rawDataArray = data['attacks'].split('|');
 	var attacks = {};
-	for (var i=0; i<rawDataArray.length; i+=2) {
-		attacks[rawDataArray[i]] = [];
-		tempBox = rawDataArray[i+1].split('_');
-		for (var j=0; j<tempBox.length; j+=2) {
-			tempBox[j+1] = tempBox[j+1].split(';');
-			attacks[rawDataArray[i]].push({'damage': parseFloat(tempBox[j+1][0]), 'launch': [parseFloat(tempBox[j+1][1].split(',')[0]), parseFloat(tempBox[j+1][1].split(',')[1])], 'stun': parseFloat(tempBox[j+1][2]), 'frames': []});
-			for(var k=0; k<frames[rawDataArray[i]]; k++) {
-				attacks[rawDataArray[i]][j/2]['frames'].push([]);
+	if (rawDataArray.length > 1) {
+		for (var i=0; i<rawDataArray.length; i+=2) {
+			attacks[rawDataArray[i]] = [];
+			tempBox = rawDataArray[i+1].split('_');
+			for (var j=0; j<tempBox.length; j+=2) {
+				tempBox[j+1] = tempBox[j+1].split(';');
+				attacks[rawDataArray[i]].push({'damage': parseFloat(tempBox[j+1][0]), 'launch': [parseFloat(tempBox[j+1][1].split(',')[0]), parseFloat(tempBox[j+1][1].split(',')[1])], 'stun': parseFloat(tempBox[j+1][2]), 'frames': []});
+				for(var k=0; k<frames[rawDataArray[i]]; k++) {
+					attacks[rawDataArray[i]][j/2]['frames'].push([]);
+				}
 			}
 		}
 	}
 
 	var rawDataArray = data['hitboxes'].split('|');
 	var hitboxes = {};
-	for (var i=0; i<rawDataArray.length; i+=2) {
-		hitboxes[rawDataArray[i]] = {};
-		tempFrame = rawDataArray[i+1].split('_');
-		for (var j=0; j<tempFrame.length; j++) {
-			tempBoxes = tempFrame[j].split('=');
-			if (tempBoxes.length > 1) {
-				hitboxes[rawDataArray[i]][tempBoxes[0]] = [];
-			}
-			for (var k=1; k<tempBoxes.length; k++) {
-				tempBox = tempBoxes[k].split(';');
-				rect = tempBox[1].split(',');
-				hitboxes[rawDataArray[i]][tempBoxes[0]].push([parseFloat(rect[0])*sprWidth + 0.5 - sprWidth/2, parseFloat(rect[1])*sprHeight + 0.5 - sprHeight/2, parseFloat(rect[2])*sprWidth + 0.5 - sprWidth/2, parseFloat(rect[3])*sprHeight + 0.5 - sprHeight/2]);
-				attacks[rawDataArray[i]][tempBox[0]]['frames'][tempBoxes[0]].push((k-1).toString());
+	if (rawDataArray.length > 1) {
+		for (var i=0; i<rawDataArray.length; i+=2) {
+			hitboxes[rawDataArray[i]] = {};
+			tempFrame = rawDataArray[i+1].split('_');
+			for (var j=0; j<tempFrame.length; j++) {
+				tempBoxes = tempFrame[j].split('=');
+				if (tempBoxes.length > 1) {
+					hitboxes[rawDataArray[i]][tempBoxes[0]] = [];
+				}
+				for (var k=1; k<tempBoxes.length; k++) {
+					tempBox = tempBoxes[k].split(';');
+					rect = tempBox[1].split(',');
+					hitboxes[rawDataArray[i]][tempBoxes[0]].push([parseFloat(rect[0])*sprWidth + 0.5 - sprWidth/2, parseFloat(rect[1])*sprHeight + 0.5 - sprHeight/2, parseFloat(rect[2])*sprWidth + 0.5 - sprWidth/2, parseFloat(rect[3])*sprHeight + 0.5 - sprHeight/2]);
+					attacks[rawDataArray[i]][tempBox[0]]['frames'][tempBoxes[0]].push((k-1).toString());
+				}
 			}
 		}
 	}
 
 	rawDataArray = data['hurtboxes'].split('|');
 	var hurtboxes = {};
-	for (var i=0; i<rawDataArray.length; i+=2) {
-		hurtboxes[rawDataArray[i]] = {};
-		tempFrame = rawDataArray[i+1].split('_');
-		for (var j=0; j<tempFrame.length; j+=2) {
-			if(tempFrame.length > 1) {
-				tempBoxes = tempFrame[j+1].split(';');
-				hurtboxes[rawDataArray[i]][tempFrame[j]] = [];
-				for (var k=0; k<tempBoxes.length; k++) {
-					rect = tempBoxes[k].split(',');
-					hurtboxes[rawDataArray[i]][tempFrame[j]].push([parseFloat(rect[0])*sprWidth + 0.5 - sprWidth/2, parseFloat(rect[1])*sprHeight + 0.5 - sprHeight/2, parseFloat(rect[2])*sprWidth + 0.5 - sprWidth/2, parseFloat(rect[3])*sprHeight + 0.5 - sprHeight/2]);
+	if (rawDataArray.length > 1) {
+		for (var i=0; i<rawDataArray.length; i+=2) {
+			hurtboxes[rawDataArray[i]] = {};
+			tempFrame = rawDataArray[i+1].split('_');
+			for (var j=0; j<tempFrame.length; j+=2) {
+				if(tempFrame.length > 1) {
+					tempBoxes = tempFrame[j+1].split(';');
+					hurtboxes[rawDataArray[i]][tempFrame[j]] = [];
+					for (var k=0; k<tempBoxes.length; k++) {
+						rect = tempBoxes[k].split(',');
+						hurtboxes[rawDataArray[i]][tempFrame[j]].push([parseFloat(rect[0])*sprWidth + 0.5 - sprWidth/2, parseFloat(rect[1])*sprHeight + 0.5 - sprHeight/2, parseFloat(rect[2])*sprWidth + 0.5 - sprWidth/2, parseFloat(rect[3])*sprHeight + 0.5 - sprHeight/2]);
+					}
 				}
 			}
 		}
@@ -410,13 +417,15 @@ function createFighterFromText(data) {
 
 	rawDataArray = data['groundboxes'].split('|');
 	var groundboxes = {};
-	for (var i=0; i<rawDataArray.length; i+=2) {
-		groundboxes[rawDataArray[i]] = {};
-		tempFrame = rawDataArray[i+1].split('_');
-		for (var j=0; j<tempFrame.length; j+=2) {
-			if(tempFrame.length > 1) {
-				rect = tempFrame[j+1].split(',');
-				groundboxes[rawDataArray[i]][tempFrame[j]] = [parseFloat(rect[0])*sprWidth + 0.5 - sprWidth/2, parseFloat(rect[1])*sprHeight + 0.5 - sprHeight/2, parseFloat(rect[2])*sprWidth + 0.5 - sprWidth/2, parseFloat(rect[3])*sprHeight + 0.5 - sprHeight/2];
+	if (rawDataArray.length > 1) {
+		for (var i=0; i<rawDataArray.length; i+=2) {
+			groundboxes[rawDataArray[i]] = {};
+			tempFrame = rawDataArray[i+1].split('_');
+			for (var j=0; j<tempFrame.length; j+=2) {
+				if(tempFrame.length > 1) {
+					rect = tempFrame[j+1].split(',');
+					groundboxes[rawDataArray[i]][tempFrame[j]] = [parseFloat(rect[0])*sprWidth + 0.5 - sprWidth/2, parseFloat(rect[1])*sprHeight + 0.5 - sprHeight/2, parseFloat(rect[2])*sprWidth + 0.5 - sprWidth/2, parseFloat(rect[3])*sprHeight + 0.5 - sprHeight/2];
+				}
 			}
 		}
 	}
@@ -1459,7 +1468,7 @@ function uploadProjectiles(fileLoadedEvent, textData, projFrames, imgFound, proj
 function render() {
 	if (game && game != null) {
 
-		/*var cameraX = 0;
+		var cameraX = 0;
 		var cameraY = 0;
 		var cameraWidth = canvas.width;
 		var cameraHeight = canvas.height;
@@ -1469,24 +1478,21 @@ function render() {
 		var farthestUp = 1;
 		var farthestDown = 0;
 		for (var i in game.players) {
-			if (game.players[i].x - game.players[i].fighter.spriteWidth/2 < farthestLeft) {
-				farthestLeft = Math.max(game.players[i].x, 0);
+			if (game.players[i].x + game.players[i].fighter.spriteWidth/2 < farthestLeft) {
+				farthestLeft = Math.max(game.players[i].x + game.players[i].fighter.spriteWidth/2, 0);
 			}
 
-			if (game.players[i].x - game.players[i].fighter.spriteWidth/2 > farthestRight) {
-				farthestRight = Math.min(game.players[i].x, 1);
+			if (game.players[i].x + game.players[i].fighter.spriteWidth/2 > farthestRight) {
+				farthestRight = Math.min(game.players[i].x + game.players[i].fighter.spriteWidth/2, 1);
 			}
 
-			if (game.players[i].y + game.players[i].fighter.spriteHeight/2 < farthestUp) {
-				farthestUp = Math.max(game.players[i].y, 0);
+			if (game.players[i].y + game.players[i].fighter.spriteHeight/2 - cameraYBias < farthestUp) {
+				farthestUp = Math.max(game.players[i].y + game.players[i].fighter.spriteHeight/2 - cameraYBias, 0);
 			}
 
-			if (game.players[i].y + game.players[i].fighter.spriteHeight/2 > farthestDown) {
-				farthestDown = Math.min(game.players[i].y, 1);
+			if (game.players[i].y + game.players[i].fighter.spriteHeight/2 - cameraYBias > farthestDown) {
+				farthestDown = Math.min(game.players[i].y + game.players[i].fighter.spriteHeight/2 - cameraYBias, 1);
 			}
-
-			context.fillStyle = 'black';
-			context.fillRect(game.players);
 		}
 
 		if (game.players && game.players.length > 0) {
@@ -1507,7 +1513,7 @@ function render() {
 		}
 
 		var zoomFactorX = 1/cameraWidth;
-		var zoomFactorY = 1/cameraHeight;*/
+		var zoomFactorY = 1/cameraHeight;
 
 		if (game.started) {
 			context.drawImage(imgs['stages'][game.stage.name], 0, 0, canvas.width, canvas.height);
@@ -1603,13 +1609,14 @@ function render() {
 
 					for (var i in tempPlayer.projectiles) {
 						var projectile = tempPlayer.projectiles[i];
-						drawProjectileFrame = Math.floor(projectile.frame/projectiles[projectile.index].animationTime);
-						for (var j in projectiles[projectile.index].hitboxes[drawProjectileFrame]) {
-							var hitbox = ((projectile.facing == 'left') ? flipHitbox(projectiles[projectile.index].hitboxes[drawProjectileFrame][j]['hitbox']) : projectiles[projectile.index].hitboxes[drawProjectileFrame][j]['hitbox']);
+						var projData = ((demo) ? newDemoProjectiles[projectile.index] : projectiles[projectile.index]);
+						drawProjectileFrame = Math.floor(projectile.frame/projData.animationTime);
+						for (var j in projData.hitboxes[drawProjectileFrame]) {
+							var hitbox = ((projectile.facing == 'left') ? flipHitbox(projData.hitboxes[drawProjectileFrame][j]['hitbox']) : projData.hitboxes[drawProjectileFrame][j]['hitbox']);
 							context.lineWidth = 2;
 							context.strokeStyle = 'rgba(0, 0, 255, 1)';
 							context.beginPath();
-							context.rect(projectile.x*canvas.width + hitbox[0]*projectiles[projectile.index].width*canvas.width, projectile.y*canvas.height + hitbox[1]*projectiles[projectile.index].height*canvas.height, (hitbox[2] - hitbox[0])*projectiles[projectile.index].width*canvas.width, (hitbox[3] - hitbox[1])*projectiles[projectile.index].height*canvas.height);
+							context.rect(projectile.x*canvas.width + hitbox[0]*projData.width*canvas.width, projectile.y*canvas.height + hitbox[1]*projData.height*canvas.height, (hitbox[2] - hitbox[0])*projData.width*canvas.width, (hitbox[3] - hitbox[1])*projData.height*canvas.height);
 							context.stroke();
 							context.closePath();
 						}
