@@ -1,0 +1,14 @@
+name@Ball
+facing@same
+x@player;0.02
+y@player;0.06
+width@0.012627604166666665
+height@0.027937500000000004
+velX@-0.015:0.015
+velY@0
+weight@0
+animationTime@5
+hitsLeft@1
+frames@1
+hitboxes@0;0.0463,-0.0341,0.9949,1.0341
+attacks@0=3;3,0;0.2
