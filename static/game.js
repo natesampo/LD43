@@ -11,7 +11,7 @@ var socket = io();
 var debug = false;
 var cameraBoundX = 0.2;
 var cameraBoundY = 0.2;
-var cameraYBias = 0.05;
+var cameraYBias = 0.08;
 
 var nameLength = 20;
 var gameNameLength = 20;
@@ -390,7 +390,9 @@ function createFighterFromText(data) {
 					tempBox = tempBoxes[k].split(';');
 					rect = tempBox[1].split(',');
 					hitboxes[rawDataArray[i]][tempBoxes[0]].push([parseFloat(rect[0])*sprWidth + 0.5 - sprWidth/2, parseFloat(rect[1])*sprHeight + 0.5 - sprHeight/2, parseFloat(rect[2])*sprWidth + 0.5 - sprWidth/2, parseFloat(rect[3])*sprHeight + 0.5 - sprHeight/2]);
-					attacks[rawDataArray[i]][tempBox[0]]['frames'][tempBoxes[0]].push((k-1).toString());
+					if (attacks[rawDataArray[i]][tempBox[0]]) {
+						attacks[rawDataArray[i]][tempBox[0]]['frames'][tempBoxes[0]].push((k-1).toString());
+					}
 				}
 			}
 		}
@@ -1468,7 +1470,7 @@ function uploadProjectiles(fileLoadedEvent, textData, projFrames, imgFound, proj
 function render() {
 	if (game && game != null) {
 
-		var cameraX = 0;
+		/*var cameraX = 0;
 		var cameraY = 0;
 		var cameraWidth = canvas.width;
 		var cameraHeight = canvas.height;
@@ -1501,23 +1503,23 @@ function render() {
 
 			if (distanceX > distanceY) {
 				cameraX = Math.min(Math.max(farthestLeft - cameraBoundX, 0), 1);
-				cameraWidth = Math.max(farthestRight + cameraBoundX - cameraX, 0);
+				cameraWidth = Math.min(Math.max(farthestRight + cameraBoundX - cameraX, 0), 1);
 				cameraHeight = cameraWidth;
 				cameraY = Math.min(Math.max(farthestUp - (cameraHeight - (farthestDown - farthestUp))/2, 0), 1 - cameraHeight);
 			} else {
 				cameraY = Math.min(Math.max(farthestUp - cameraBoundY, 0), 1);
-				cameraHeight = Math.max(farthestDown + cameraBoundY - cameraY, 0);
+				cameraHeight = Math.min(Math.max(farthestDown + cameraBoundY - cameraY, 0), 1);
 				cameraWidth = cameraHeight;
 				cameraX = Math.min(Math.max(farthestLeft - (cameraWidth - (farthestRight - farthestLeft))/2, 0), 1 - cameraWidth);
 			}
 		}
 
 		var zoomFactorX = 1/cameraWidth;
-		var zoomFactorY = 1/cameraHeight;
+		var zoomFactorY = 1/cameraHeight;*/
 
 		if (game.started) {
-			context.drawImage(imgs['stages'][game.stage.name], 0, 0, canvas.width, canvas.height);
-			//cameraX*canvas.width, cameraY*canvas.height, cameraWidth*canvas.width, cameraHeight*canvas.height, 
+			//context.drawImage(imgs['stages'][game.stage.name], cameraX*canvas.width, cameraY*canvas.height, cameraWidth*canvas.width, cameraHeight*canvas.height, 0, 0, canvas.width, canvas.height); 
+			context.drawImage(imgs['stages'][game.stage.name], 0, 0, canvas.width, canvas.height); 
 		}
 
 		/*context.lineWidth = 3;
@@ -1541,10 +1543,12 @@ function render() {
 				if ((imgs['demo'] && demo) || (contains(Object.keys(imgs['fighters']), tempPlayer.fighter.name))) {
 					var tempSheet = ((imgs['demo'] && demo) ? imgs['demo'][tempPlayer.action] : imgs['fighters'][tempPlayer.fighter.name][tempPlayer.action]);
 					if (tempPlayer.facing == 'right') {
+						//context.drawImage(tempSheet, drawFrame*(tempSheet.width/tempPlayer.fighter.frames[tempPlayer.action]), tempPlayer.sprite*(tempSheet.height/tempPlayer.fighter.sprites), tempSheet.width/tempPlayer.fighter.frames[tempPlayer.action], tempSheet.height/tempPlayer.fighter.sprites, ((tempPlayer.x - cameraX)/cameraWidth)*canvas.width, ((tempPlayer.y - cameraY)/cameraWidth)*canvas.height, spriteWidth*zoomFactorX, spriteHeight*zoomFactorY);
 						context.drawImage(tempSheet, drawFrame*(tempSheet.width/tempPlayer.fighter.frames[tempPlayer.action]), tempPlayer.sprite*(tempSheet.height/tempPlayer.fighter.sprites), tempSheet.width/tempPlayer.fighter.frames[tempPlayer.action], tempSheet.height/tempPlayer.fighter.sprites, tempPlayer.x*canvas.width, tempPlayer.y*canvas.height, spriteWidth, spriteHeight);
 					} else {
 						context.translate(canvas.width, 0);
 						context.scale(-1, 1);
+						//context.drawImage(tempSheet, drawFrame*(tempSheet.width/tempPlayer.fighter.frames[tempPlayer.action]), tempPlayer.sprite*(tempSheet.height/tempPlayer.fighter.sprites), tempSheet.width/tempPlayer.fighter.frames[tempPlayer.action], tempSheet.height/tempPlayer.fighter.sprites, canvas.width - ((tempPlayer.x - cameraX)/cameraWidth)*canvas.width - 2*spriteWidth, ((tempPlayer.y - cameraY)/cameraWidth)*canvas.height, spriteWidth*zoomFactorX, spriteHeight*zoomFactorY);
 						context.drawImage(tempSheet, drawFrame*(tempSheet.width/tempPlayer.fighter.frames[tempPlayer.action]), tempPlayer.sprite*(tempSheet.height/tempPlayer.fighter.sprites), tempSheet.width/tempPlayer.fighter.frames[tempPlayer.action], tempSheet.height/tempPlayer.fighter.sprites, canvas.width - tempPlayer.x*canvas.width - spriteWidth, tempPlayer.y*canvas.height, spriteWidth, spriteHeight);
 						context.setTransform(1, 0, 0, 1, 0, 0);
 					}
